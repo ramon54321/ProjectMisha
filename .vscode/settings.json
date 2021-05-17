@@ -1,6 +1,0 @@
-{
-  "files.exclude": {
-    ".bloop": true,
-    ".metals": true
-  }
-}
