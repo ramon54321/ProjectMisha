@@ -1,2 +1,8 @@
+.DS_Store
 .idea
+.idea_modules
+.bloop
+.metals
+.vscode
+natives
 out

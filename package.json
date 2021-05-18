@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "idea:reload": "mill mill.scalalib.GenIdea/idea"
+  }
+}

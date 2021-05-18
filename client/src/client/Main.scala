@@ -4,7 +4,7 @@ import shared.Threading
 
 object Main {
   def main(args: Array[String]) = {
-    Network.start()
+//    Network.start()
     Window.start()
     Threading.registerShutdownHook()
   }

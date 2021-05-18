@@ -12,15 +12,16 @@ object client extends CommonModule {
     ivy"org.lwjgl:lwjgl-glfw:3.2.3",
     ivy"org.lwjgl:lwjgl-openal:3.2.3",
     ivy"org.lwjgl:lwjgl-opengl:3.2.3",
+    ivy"org.lwjgl:lwjgl-cuda:3.2.3",
+    ivy"org.lwjgl:lwjgl-nuklear:3.2.3",
     ivy"org.lwjgl:lwjgl-stb:3.2.3",
-    ivy"org.lwjgl:lwjgl:natives-macos",
-    ivy"org.lwjgl:lwjgl-assimp:natives-macos",
-    ivy"org.lwjgl:lwjgl-glfw:natives-macos",
-    ivy"org.lwjgl:lwjgl-openal:natives-macos",
-    ivy"org.lwjgl:lwjgl-opengl:natives-macos",
-    ivy"org.lwjgl:lwjgl-stb:natives-macos",
     ivy"org.joml:joml:1.10.1",
   )
+  def unmanagedClasspath = T {
+    if (!os.exists(millSourcePath / os.up / "natives")) Agg()
+    else Agg.from(os.list(millSourcePath / os.up / "natives")).map(PathRef(_))
+  }
+  def forkArgs = Seq("-XstartOnFirstThread")
 }
 
 object server extends CommonModule {
