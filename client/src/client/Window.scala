@@ -146,7 +146,7 @@ object Window {
       val shaderProgram = glCreateProgram()
       var uniformGlobalColor = 0
       var uniformMainTexture = 1
-      private def buildShader() = {
+      private def buildTexture() = {
         glBindTexture(GL_TEXTURE_2D, textureHandle)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
@@ -159,7 +159,8 @@ object Window {
           1.0f, 1.0f, 1.0f, 0.9f,
         ))
         glGenerateMipmap(GL_TEXTURE_2D)
-
+      }
+      private def buildShader() = {
         val vertexShaderSource =
           """
             |#version 400
@@ -227,6 +228,7 @@ object Window {
         glEnableVertexAttribArray(2)
       }
       def build() = {
+        buildTexture()
         buildShader()
         buildBuffers()
       }
