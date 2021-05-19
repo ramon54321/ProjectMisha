@@ -13,6 +13,7 @@ import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Using
 
 object Window {
   def start() = {
@@ -46,8 +47,7 @@ object Window {
     })
 
     // Push a new frame onto the thread stack
-    try {
-      val stack = stackPush()
+    Using (stackPush()) { stack => 
       val pWidth = stack.mallocInt(1)
       val pHeight = stack.mallocInt(1)
 
@@ -60,8 +60,6 @@ object Window {
 
       // Center window on monitor
       glfwSetWindowPos(window, (videoMode.width() - pWidth.get(0)) / 2, (videoMode.height() - pHeight.get(0)) / 2)
-    } catch {
-      case e: Exception => println("Error pushing frame onto thread stack")
     }
 
     // Make OpenGL context current
@@ -102,7 +100,7 @@ object Window {
         0.5f, 0.5f, 0.8f,
         0.5f, 0.0f, 0.5f,
       )
-      val indexes = Array(
+      val indexes = Array[Int](
         0, 1, 2, 2, 3, 0
       )
     }
@@ -128,30 +126,13 @@ object Window {
       }
       val vboPositions = glGenBuffers()
       val vboColors = glGenBuffers()
-      val vao = glGenVertexArrays()
       val vio = glGenBuffers()
+      val vao = glGenVertexArrays()
       val vertexShader = glCreateShader(GL_VERTEX_SHADER)
       val fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
       val shaderProgram = glCreateProgram()
       var uniformGlobalColor = 0
-      def build() = {
-        glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
-        glBufferData(GL_ARRAY_BUFFER, positions.toArray, GL_STATIC_DRAW)
-
-        glBindBuffer(GL_ARRAY_BUFFER, vboColors)
-        glBufferData(GL_ARRAY_BUFFER, colors.toArray, GL_STATIC_DRAW)
-
-        glBindVertexArray(vao)
-        glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
-        glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, NULL)
-        glBindBuffer(GL_ARRAY_BUFFER, vboColors)
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, NULL)
-        glEnableVertexAttribArray(0)
-        glEnableVertexAttribArray(1)
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vio)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexes.toArray, GL_STATIC_DRAW)
-
+      private def buildShader() = {
         val vertexShaderSource =
           """
             |#version 400
@@ -190,6 +171,34 @@ object Window {
 
         uniformGlobalColor = glGetUniformLocation(shaderProgram, "globalColor")
       }
+      def buildBuffers() = {
+        glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
+        glBufferData(GL_ARRAY_BUFFER, positions.length * 4, GL_STATIC_DRAW)
+        glBindBuffer(GL_ARRAY_BUFFER, vboColors)
+        glBufferData(GL_ARRAY_BUFFER, colors.length * 4, GL_STATIC_DRAW)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vio)
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexes.length * 4, GL_STATIC_DRAW)
+        
+        glBindVertexArray(vao)
+        glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
+        glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, NULL)
+        glBindBuffer(GL_ARRAY_BUFFER, vboColors)
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, NULL)
+        glEnableVertexAttribArray(0)
+        glEnableVertexAttribArray(1)
+      }
+      def build() = {
+        buildShader()
+        buildBuffers()
+      }
+      def updateBuffers() = {
+        glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
+        glBufferSubData(GL_ARRAY_BUFFER, 0, positions.toArray)
+        glBindBuffer(GL_ARRAY_BUFFER, vboColors)
+        glBufferSubData(GL_ARRAY_BUFFER, 0, colors.toArray)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vio)
+        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indexes.toArray)
+      }
       def render() = {
         glUseProgram(shaderProgram)
         glUniform4f(uniformGlobalColor, 0.0f, 1.0f, 1.0f, 1.0f)
@@ -203,6 +212,7 @@ object Window {
     Batch.addSprite(new Sprite(-0.6f, 0.0f))
     Batch.addSprite(new Sprite(0.3f, 0.2f))
     Batch.build()
+    Batch.updateBuffers()
     
     // Set the clear color
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
