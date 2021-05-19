@@ -135,6 +135,12 @@ object Window {
         indexes.addAll(sprite.getIndexes().map(i => i + spriteCount * 4))
         spriteCount += 1
       }
+      def updateBuffers() = {
+        // Sort sprites list
+        // Concatenate buffers
+        // Send buffers
+        this.sendBuffers()
+      }
       val textureHandle = glGenTextures()
       val vboPositions = glGenBuffers()
       val vboColors = glGenBuffers()
@@ -232,7 +238,7 @@ object Window {
         buildShader()
         buildBuffers()
       }
-      def updateBuffers() = {
+      private def sendBuffers() = {
         glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
         glBufferSubData(GL_ARRAY_BUFFER, 0, positions.toArray)
         glBindBuffer(GL_ARRAY_BUFFER, vboColors)
