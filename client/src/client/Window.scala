@@ -8,7 +8,7 @@ import org.lwjgl.opengl.GL11._
 import org.lwjgl.opengl.GL15._
 import org.lwjgl.opengl.GL20._
 import org.lwjgl.opengl.GL30._
-import org.lwjgl.opengl.{GL11, GL20, GLUtil}
+import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
 
@@ -24,12 +24,13 @@ object Window {
     glfwDefaultWindowHints()
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
+    glfwWindowHint(GLFW_SAMPLES, 4)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
 
     // Create the window
-    val window = glfwCreateWindow(300, 300, "Misha", NULL, NULL)
+    val window = glfwCreateWindow(800, 800, "Misha", NULL, NULL)
     if (window == NULL) throw new RuntimeException("Failed to create GLFW window")
 
     // Key Callback
@@ -74,15 +75,20 @@ object Window {
     val glCapabilities = createCapabilities()
     GLUtil.setupDebugMessageCallback(System.out)
 
+    // GL Setup
+    glEnable(GL_CULL_FACE)
+    glCullFace(GL_BACK)
+    glFrontFace(GL_CCW)
+
     // Test
-    val vertices = Array(
-      0.0f,  0.5f,  0.0f,
+    val vertexData = Array(
+      0.0f,  0.5f,  0.0f, 
+      -0.5f, -0.5f,  0.0f,
       0.5f, -0.5f,  0.0f,
-      -0.5f, -0.5f,  0.0f
     )
     val vbo = glGenBuffers()
     glBindBuffer(GL_ARRAY_BUFFER, vbo)
-    glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
+    glBufferData(GL_ARRAY_BUFFER, vertexData, GL_STATIC_DRAW)
 
     val vao = glGenVertexArrays()
     glBindVertexArray(vao)
@@ -102,9 +108,10 @@ object Window {
     val fragmentShaderSource =
       """
         |#version 400
+        |uniform vec4 globalColor;
         |out vec4 frag_colour;
         |void main(void) {
-        | frag_colour = vec4(1.0, 1.0, 0.5, 1.0);
+        | frag_colour = globalColor;
         |}
         |""".stripMargin
 
@@ -121,7 +128,10 @@ object Window {
     glAttachShader(shaderProgram, vertexShader)
     glAttachShader(shaderProgram, fragmentShader)
     glLinkProgram(shaderProgram)
+    glValidateProgram(shaderProgram)
     Validate.program(shaderProgram)
+
+    val uniformGlobalColor = glGetUniformLocation(shaderProgram, "globalColor")
 
     // Set the clear color
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
@@ -133,6 +143,7 @@ object Window {
 
       // Test
       glUseProgram(shaderProgram)
+      glUniform4f(uniformGlobalColor, 0.0f, 1.0f, 1.0f, 1.0f)
       glBindVertexArray(vao)
       glDrawArrays(GL_TRIANGLES, 0, 3)
 
