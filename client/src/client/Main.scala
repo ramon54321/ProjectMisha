@@ -7,6 +7,6 @@ object Main {
     // Benchmark
     // Network.start()
     Window.start()
-    Threading.registerShutdownHook()
+    // Threading.registerShutdownHook()
   }
 }
