@@ -5,5 +5,4 @@
 .coursier
 .metals
 .vscode
-natives
 out
