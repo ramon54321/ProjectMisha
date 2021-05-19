@@ -83,25 +83,51 @@ object Window {
     glFrontFace(GL_CCW)
 
     // Test
-    val postions = Array(
-      -0.5f,  0.5f,
-      -0.5f, -0.5f,
-      0.5f, -0.5f,
-      0.5f, 0.5f,
-    )
+    class Sprite(var x: Float = 0, var y: Float = 0) {
+      def getPositions(): Array[Float] = Sprite.positions
+      def getColors(): Array[Float] = Sprite.colors
+      def getIndexes(): Array[Int] = Sprite.indexes
+    }
+    object Sprite {
+      val positions = Array(
+        -0.5f,  0.5f,
+        -0.5f, -0.5f,
+        0.5f, -0.5f,
+        0.5f, 0.5f,
+      )
+      val colors = Array(
+        0.5f, 0.5f, 0.0f,
+        0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, 0.8f,
+        0.5f, 0.0f, 0.5f,
+      )
+      val indexes = Array(
+        0, 1, 2, 2, 3, 0
+      )
+    }
+
+    val spriteA = new Sprite(0f, 0f)
+    val spriteB = new Sprite(0.3f, 0.2f)
+
+    val positionsCombined = spriteA.getPositions().concat(spriteB.getPositions())
+    for (s <- 0 until 2) {
+      val offset = s * 8
+      for (i <- 0 until 8) {
+        if (i % 2 == 0) {
+          positionsCombined(offset + i) += (if (s == 0) spriteA.x else spriteB.x)
+        } else {
+          positionsCombined(offset + i) += (if (s == 0) spriteA.y else spriteB.y)
+        }
+      }
+    }
     val vboPositions = glGenBuffers()
     glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
-    glBufferData(GL_ARRAY_BUFFER, postions, GL_STATIC_DRAW)
+    glBufferData(GL_ARRAY_BUFFER, positionsCombined, GL_STATIC_DRAW)
 
-    val colors = Array(
-      0.5f, 0.5f, 0.0f,
-      0.5f, 0.5f, 0.5f,
-      0.5f, 0.5f, 0.8f,
-      0.5f, 0.0f, 0.5f,
-    )
+    val colorsCombined = spriteA.getColors().concat(spriteB.getColors())
     val vboColors = glGenBuffers()
     glBindBuffer(GL_ARRAY_BUFFER, vboColors)
-    glBufferData(GL_ARRAY_BUFFER, colors, GL_STATIC_DRAW)
+    glBufferData(GL_ARRAY_BUFFER, colorsCombined, GL_STATIC_DRAW)
 
     val vao = glGenVertexArrays()
     glBindVertexArray(vao)
@@ -111,6 +137,14 @@ object Window {
     glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, NULL)
     glEnableVertexAttribArray(0)
     glEnableVertexAttribArray(1)
+
+    val indexesCombined = spriteA.getIndexes().concat(spriteB.getIndexes())
+    for (i <- 6 until 12) {
+      indexesCombined(i) += 4
+    }
+    val vio = glGenBuffers()
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vio)
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexesCombined, GL_STATIC_DRAW)
 
     val vertexShaderSource =
       """
@@ -165,7 +199,9 @@ object Window {
       glUseProgram(shaderProgram)
       glUniform4f(uniformGlobalColor, 0.0f, 1.0f, 1.0f, 1.0f)
       glBindVertexArray(vao)
-      glDrawArrays(GL_TRIANGLE_FAN, 0, 4)
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vio)
+      glDrawElements(GL_TRIANGLES, 6 * 2, GL_UNSIGNED_INT, 0)
+      // glDrawArrays(GL_TRIANGLES, 0, 2 * 6)
 
       // Swap the color buffers
       glfwSwapBuffers(window)
