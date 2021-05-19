@@ -12,6 +12,7 @@ import org.lwjgl.opengl.GL30._
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
+import scala.collection.mutable.ArrayBuffer
 
 object Window {
   def start() = {
@@ -106,87 +107,103 @@ object Window {
       )
     }
 
-    val spriteA = new Sprite(0f, 0f)
-    val spriteB = new Sprite(0.3f, 0.2f)
-
-    val positionsCombined = spriteA.getPositions().concat(spriteB.getPositions())
-    for (s <- 0 until 2) {
-      val offset = s * 8
-      for (i <- 0 until 8) {
-        if (i % 2 == 0) {
-          positionsCombined(offset + i) += (if (s == 0) spriteA.x else spriteB.x)
-        } else {
-          positionsCombined(offset + i) += (if (s == 0) spriteA.y else spriteB.y)
+    object Batch {
+      private var spriteCount = 0
+      val positions = new ArrayBuffer[Float]()
+      val colors = new ArrayBuffer[Float]()
+      val indexes = new ArrayBuffer[Int]()
+      def addSprite(sprite: Sprite) = {
+        positions.addAll(sprite.getPositions())
+        val offset = spriteCount * 8
+        for (i <- 0 until 8) {
+          if (i % 2 == 0) {
+            positions(offset + i) += sprite.x
+          } else {
+            positions(offset + i) += sprite.y
+          }
         }
+        colors.addAll(sprite.getColors())
+        indexes.addAll(sprite.getIndexes().map(i => i + spriteCount * 4))
+        spriteCount += 1
+      }
+      val vboPositions = glGenBuffers()
+      val vboColors = glGenBuffers()
+      val vao = glGenVertexArrays()
+      val vio = glGenBuffers()
+      val vertexShader = glCreateShader(GL_VERTEX_SHADER)
+      val fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
+      val shaderProgram = glCreateProgram()
+      var uniformGlobalColor = 0
+      def build() = {
+        glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
+        glBufferData(GL_ARRAY_BUFFER, positions.toArray, GL_STATIC_DRAW)
+
+        glBindBuffer(GL_ARRAY_BUFFER, vboColors)
+        glBufferData(GL_ARRAY_BUFFER, colors.toArray, GL_STATIC_DRAW)
+
+        glBindVertexArray(vao)
+        glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
+        glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, NULL)
+        glBindBuffer(GL_ARRAY_BUFFER, vboColors)
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, NULL)
+        glEnableVertexAttribArray(0)
+        glEnableVertexAttribArray(1)
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vio)
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexes.toArray, GL_STATIC_DRAW)
+
+        val vertexShaderSource =
+          """
+            |#version 400
+            |in vec2 vertexPosition;
+            |in vec3 vertexColor;
+            |out vec3 color;
+            |void main(void) {
+            | color = vertexColor;
+            | gl_Position = vec4(vertexPosition, 1.0, 1.0);
+            |}
+            |""".stripMargin
+
+        val fragmentShaderSource =
+          """
+            |#version 400
+            |uniform vec4 globalColor;
+            |in vec3 color;
+            |out vec4 frag_colour;
+            |void main(void) {
+            | frag_colour = vec4(globalColor.xyz * color, 1.0);
+            |}
+            |""".stripMargin
+
+        glShaderSource(vertexShader, vertexShaderSource)
+        glShaderSource(fragmentShader, fragmentShaderSource)
+        glCompileShader(vertexShader)
+        glCompileShader(fragmentShader)
+        Validate.shader(vertexShader)
+        Validate.shader(fragmentShader)
+
+        glAttachShader(shaderProgram, vertexShader)
+        glAttachShader(shaderProgram, fragmentShader)
+        glLinkProgram(shaderProgram)
+        glValidateProgram(shaderProgram)
+        Validate.program(shaderProgram)
+
+        uniformGlobalColor = glGetUniformLocation(shaderProgram, "globalColor")
+      }
+      def render() = {
+        glUseProgram(shaderProgram)
+        glUniform4f(uniformGlobalColor, 0.0f, 1.0f, 1.0f, 1.0f)
+        glBindVertexArray(vao)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vio)
+        glDrawElements(GL_TRIANGLES, 6 * spriteCount, GL_UNSIGNED_INT, 0)
       }
     }
-    val vboPositions = glGenBuffers()
-    glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
-    glBufferData(GL_ARRAY_BUFFER, positionsCombined, GL_STATIC_DRAW)
 
-    val colorsCombined = spriteA.getColors().concat(spriteB.getColors())
-    val vboColors = glGenBuffers()
-    glBindBuffer(GL_ARRAY_BUFFER, vboColors)
-    glBufferData(GL_ARRAY_BUFFER, colorsCombined, GL_STATIC_DRAW)
-
-    val vao = glGenVertexArrays()
-    glBindVertexArray(vao)
-    glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
-    glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, NULL)
-    glBindBuffer(GL_ARRAY_BUFFER, vboColors)
-    glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, NULL)
-    glEnableVertexAttribArray(0)
-    glEnableVertexAttribArray(1)
-
-    val indexesCombined = spriteA.getIndexes().concat(spriteB.getIndexes())
-    for (i <- 6 until 12) {
-      indexesCombined(i) += 4
-    }
-    val vio = glGenBuffers()
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vio)
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexesCombined, GL_STATIC_DRAW)
-
-    val vertexShaderSource =
-      """
-        |#version 400
-        |in vec2 vertexPosition;
-        |in vec3 vertexColor;
-        |out vec3 color;
-        |void main(void) {
-        | color = vertexColor;
-        | gl_Position = vec4(vertexPosition, 1.0, 1.0);
-        |}
-        |""".stripMargin
-
-    val fragmentShaderSource =
-      """
-        |#version 400
-        |uniform vec4 globalColor;
-        |in vec3 color;
-        |out vec4 frag_colour;
-        |void main(void) {
-        | frag_colour = vec4(globalColor.xyz * color, 1.0);
-        |}
-        |""".stripMargin
-
-    val vertexShader = glCreateShader(GL_VERTEX_SHADER)
-    val fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
-    glShaderSource(vertexShader, vertexShaderSource)
-    glShaderSource(fragmentShader, fragmentShaderSource)
-    glCompileShader(vertexShader)
-    glCompileShader(fragmentShader)
-    Validate.shader(vertexShader)
-    Validate.shader(fragmentShader)
-
-    val shaderProgram = glCreateProgram()
-    glAttachShader(shaderProgram, vertexShader)
-    glAttachShader(shaderProgram, fragmentShader)
-    glLinkProgram(shaderProgram)
-    glValidateProgram(shaderProgram)
-    Validate.program(shaderProgram)
-
-    val uniformGlobalColor = glGetUniformLocation(shaderProgram, "globalColor")
-
+    Batch.addSprite(new Sprite(0f, 0f))
+    Batch.addSprite(new Sprite(-0.6f, 0.0f))
+    Batch.addSprite(new Sprite(0.3f, 0.2f))
+    Batch.build()
+    
     // Set the clear color
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
 
@@ -196,12 +213,7 @@ object Window {
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
       // Test
-      glUseProgram(shaderProgram)
-      glUniform4f(uniformGlobalColor, 0.0f, 1.0f, 1.0f, 1.0f)
-      glBindVertexArray(vao)
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vio)
-      glDrawElements(GL_TRIANGLES, 6 * 2, GL_UNSIGNED_INT, 0)
-      // glDrawArrays(GL_TRIANGLES, 0, 2 * 6)
+      Batch.render()
 
       // Swap the color buffers
       glfwSwapBuffers(window)
