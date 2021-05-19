@@ -5,6 +5,7 @@ import org.lwjgl.glfw.GLFW._
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL.createCapabilities
 import org.lwjgl.opengl.GL11._
+import org.lwjgl.opengl.GL13._
 import org.lwjgl.opengl.GL15._
 import org.lwjgl.opengl.GL20._
 import org.lwjgl.opengl.GL30._
@@ -24,7 +25,7 @@ object Window {
     glfwDefaultWindowHints()
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
-    glfwWindowHint(GLFW_SAMPLES, 4)
+    glfwWindowHint(GLFW_SAMPLES, 2)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
@@ -76,32 +77,50 @@ object Window {
     GLUtil.setupDebugMessageCallback(System.out)
 
     // GL Setup
+    glEnable(GL_MULTISAMPLE)
     glEnable(GL_CULL_FACE)
     glCullFace(GL_BACK)
     glFrontFace(GL_CCW)
 
     // Test
-    val vertexData = Array(
-      0.0f,  0.5f,  0.0f, 
-      -0.5f, -0.5f,  0.0f,
-      0.5f, -0.5f,  0.0f,
+    val postions = Array(
+      -0.5f,  0.5f,
+      -0.5f, -0.5f,
+      0.5f, -0.5f,
+      0.5f, 0.5f,
     )
-    val vbo = glGenBuffers()
-    glBindBuffer(GL_ARRAY_BUFFER, vbo)
-    glBufferData(GL_ARRAY_BUFFER, vertexData, GL_STATIC_DRAW)
+    val vboPositions = glGenBuffers()
+    glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
+    glBufferData(GL_ARRAY_BUFFER, postions, GL_STATIC_DRAW)
+
+    val colors = Array(
+      0.5f, 0.5f, 0.0f,
+      0.5f, 0.5f, 0.5f,
+      0.5f, 0.5f, 0.8f,
+      0.5f, 0.0f, 0.5f,
+    )
+    val vboColors = glGenBuffers()
+    glBindBuffer(GL_ARRAY_BUFFER, vboColors)
+    glBufferData(GL_ARRAY_BUFFER, colors, GL_STATIC_DRAW)
 
     val vao = glGenVertexArrays()
     glBindVertexArray(vao)
+    glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
+    glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, NULL)
+    glBindBuffer(GL_ARRAY_BUFFER, vboColors)
+    glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, NULL)
     glEnableVertexAttribArray(0)
-    glBindBuffer(GL_ARRAY_BUFFER, vbo)
-    glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, NULL)
+    glEnableVertexAttribArray(1)
 
     val vertexShaderSource =
       """
         |#version 400
-        |in vec3 vertexPosition;
+        |in vec2 vertexPosition;
+        |in vec3 vertexColor;
+        |out vec3 color;
         |void main(void) {
-        | gl_Position = vec4(vertexPosition, 1.0);
+        | color = vertexColor;
+        | gl_Position = vec4(vertexPosition, 1.0, 1.0);
         |}
         |""".stripMargin
 
@@ -109,9 +128,10 @@ object Window {
       """
         |#version 400
         |uniform vec4 globalColor;
+        |in vec3 color;
         |out vec4 frag_colour;
         |void main(void) {
-        | frag_colour = globalColor;
+        | frag_colour = vec4(globalColor.xyz * color, 1.0);
         |}
         |""".stripMargin
 
@@ -145,7 +165,7 @@ object Window {
       glUseProgram(shaderProgram)
       glUniform4f(uniformGlobalColor, 0.0f, 1.0f, 1.0f, 1.0f)
       glBindVertexArray(vao)
-      glDrawArrays(GL_TRIANGLES, 0, 3)
+      glDrawArrays(GL_TRIANGLE_FAN, 0, 4)
 
       // Swap the color buffers
       glfwSwapBuffers(window)
