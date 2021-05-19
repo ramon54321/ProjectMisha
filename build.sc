@@ -5,6 +5,9 @@ trait CommonModule extends ScalaModule {
 }
 
 object client extends CommonModule {
+  
+  val isMac = System.getProperty("os.name").toLowerCase().contains("mac")
+
   def moduleDeps = Seq(shared)
   def ivyDeps = Agg(
     ivy"org.lwjgl:lwjgl:3.2.3",
@@ -21,7 +24,7 @@ object client extends CommonModule {
     if (!os.exists(millSourcePath / os.up / "natives")) Agg()
     else Agg.from(os.list(millSourcePath / os.up / "natives")).map(PathRef(_))
   }
-  def forkArgs = Seq("-XstartOnFirstThread")
+  def forkArgs = if (isMac) Seq("-XstartOnFirstThread") else Seq[String]()
 }
 
 object server extends CommonModule {

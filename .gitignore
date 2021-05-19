@@ -2,6 +2,7 @@
 .idea
 .idea_modules
 .bloop
+.coursier
 .metals
 .vscode
 natives
