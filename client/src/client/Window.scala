@@ -15,6 +15,7 @@ import org.lwjgl.system.MemoryUtil.NULL
 import scala.util.Using
 import org.joml.Matrix4f
 import EventTag._
+import client.game.Game
 
 object Window {
   System.out.println(f"Running with LWJGL version ${Version.getVersion}")
@@ -47,15 +48,14 @@ object Window {
   glfwSetKeyCallback(
     window,
     (window, key, scancode, action, mods) => {
+      if (key == GLFW_KEY_E && action == GLFW_REPEAT)
+        println("Pressed E")
       if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
         glfwSetWindowShouldClose(window, true)
-      if (action == GLFW_RELEASE) {
-        if (key == GLFW_KEY_Q) {
-          println("Pressed Q")
-        }
-      }
     }
   )
+
+  def keyDown(key: Int): Boolean = glfwGetKey(window, key) == GLFW_PRESS
 
   // Push a new frame onto the thread stack
   Using(stackPush()) { stack =>
@@ -104,12 +104,21 @@ object Window {
   // Set the clear color
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
 
-  // Render loop
+  // Track Frame Times
+  var frameCount = 0
+  var lastFrameCount = 0
+  var lastSecondTime = System.nanoTime()
+  var lastFrameTime = System.nanoTime()
+  var lastFrameDeltaTime: Float = 0
+  def deltaTime() = lastFrameDeltaTime
+  def fps() = lastFrameCount
+
+  // Start Loop
   while (!glfwWindowShouldClose(window)) {
     // Clear framebuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-    // Game Layer
+    // Emit Render
     Events.emit(EVENT_GL_RENDER)
 
     // Swap the color buffers
@@ -117,5 +126,19 @@ object Window {
 
     // Invoke key callback
     glfwPollEvents()
+
+    // Emit Update
+    Events.emit(EVENT_GL_UPDATE)
+
+    // Update Frame Times
+    val currentFrameTime = System.nanoTime()
+    frameCount += 1
+    if (currentFrameTime - lastSecondTime > 1000000000) {
+      lastSecondTime = currentFrameTime
+      lastFrameCount = frameCount
+      frameCount = 0
+    }
+    lastFrameDeltaTime = ((currentFrameTime - lastFrameTime) / 1000000000f)
+    lastFrameTime = currentFrameTime
   }
 }
