@@ -13,6 +13,12 @@ import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
 import scala.util.Using
+import org.joml.Matrix4f
+
+object Constants {
+  val SCREEN_WIDTH = 1280
+  val SCREEN_HEIGHT = 720
+}
 
 object Window {
   def start() = {
@@ -25,14 +31,20 @@ object Window {
 
     glfwDefaultWindowHints()
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE)
     glfwWindowHint(GLFW_SAMPLES, 2)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
 
     // Create the window
-    val window = glfwCreateWindow(800, 800, "Misha", NULL, NULL)
+    val window = glfwCreateWindow(
+      Constants.SCREEN_WIDTH,
+      Constants.SCREEN_HEIGHT,
+      "Misha",
+      NULL,
+      NULL
+    )
     if (window == NULL)
       throw new RuntimeException("Failed to create GLFW window")
 
@@ -91,11 +103,17 @@ object Window {
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-    // Test
+    // Game Layer
+    val projectionMatrix = new Matrix4f().ortho(
+      -Constants.SCREEN_WIDTH / 2,
+      Constants.SCREEN_WIDTH / 2,
+      -Constants.SCREEN_HEIGHT / 2,
+      Constants.SCREEN_HEIGHT / 2,
+      -1,
+      1
+    )
     val staticSpriteBatchRenderer = new StaticSpriteBatchRenderer()
-    staticSpriteBatchRenderer.addSprite(new StaticSprite(0f, 0f))
-    staticSpriteBatchRenderer.addSprite(new StaticSprite(-0.6f, 0.5f))
-    staticSpriteBatchRenderer.addSprite(new StaticSprite(0.3f, 0.2f))
+    staticSpriteBatchRenderer.addSprite(new StaticSprite(0f, 0f, 128, 128))
 
     // Set the clear color
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
@@ -105,8 +123,8 @@ object Window {
       // Clear framebuffer
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-      // Test
-      staticSpriteBatchRenderer.render()
+      // Game Layer
+      staticSpriteBatchRenderer.render(projectionMatrix, 0, 0)
 
       // Swap the color buffers
       glfwSwapBuffers(window)

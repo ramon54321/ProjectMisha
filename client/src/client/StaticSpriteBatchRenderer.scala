@@ -5,12 +5,24 @@ import org.lwjgl.opengl.GL13._
 import org.lwjgl.opengl.GL15._
 import org.lwjgl.opengl.GL20._
 import org.lwjgl.opengl.GL30._
+import org.joml._
 import org.lwjgl.system.MemoryUtil.NULL
 import scala.collection.mutable.TreeSet
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Using
+import org.lwjgl.system.MemoryStack
 
-class StaticSprite(val x: Float = 0, val y: Float = 0) {
-  def getPositions(): Array[Float] = StaticSprite.positions
+class StaticSprite(val x: Float = 0, val y: Float = 0, val width: Float = 32, val height: Float = 32) {
+  // Create local copy of positions scaled to the local size of the sprite
+  private val positions = StaticSprite.positions.clone()
+  for (i <- 0 until 8) {
+    if (i % 2 == 0) {
+      positions(i) *= width
+    } else {
+      positions(i) *= height
+    }
+  }
+  def getPositions(): Array[Float] = this.positions
   def getColors(): Array[Float] = StaticSprite.colors
   def getUvs(): Array[Float] = StaticSprite.uvs
   def getIndexes(): Array[Int] = StaticSprite.indexes
@@ -68,7 +80,11 @@ class StaticSpriteBatchRenderer {
   private val fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
   private val shaderProgram = glCreateProgram()
   private var uniformGlobalColor = 0
-  private var uniformMainTexture = 1
+  private var uniformModelView = 1
+  private var uniformMainTexture = 2
+
+  // Preallocate Mat4s
+  private val viewMatrix = new Matrix4f()
 
   // Setup batch object
   setupTexture()
@@ -110,12 +126,13 @@ class StaticSpriteBatchRenderer {
             |in vec2 vertexPosition;
             |in vec3 vertexColor;
             |in vec2 vertexUvs;
+            |uniform mat4 modelView;
             |out vec3 color;
             |out vec2 uvs;
             |void main(void) {
             | color = vertexColor;
             | uvs = vertexUvs;
-            | gl_Position = vec4(vertexPosition, 1.0, 1.0);
+            | gl_Position = modelView * vec4(vertexPosition.xy, 0.0, 1.0);
             |}
             |""".stripMargin
 
@@ -158,6 +175,7 @@ class StaticSpriteBatchRenderer {
 
     // Get locations for uniforms in shader program
     uniformGlobalColor = glGetUniformLocation(shaderProgram, "globalColor")
+    uniformModelView = glGetUniformLocation(shaderProgram, "modelView")
     uniformMainTexture = glGetUniformLocation(shaderProgram, "mainTexture")
   }
   private def setupBuffers() = {
@@ -239,7 +257,7 @@ class StaticSpriteBatchRenderer {
     // Send aggregated buffers to GPU
     sendBuffers(positions.toArray, colors.toArray, uvs.toArray, indexes.toArray)
   }
-  def render() = {
+  def render(projectionMatrix: Matrix4fc, cameraX: Float, cameraY: Float) = {
     // Update buffers with sprites' data if needed
     if (isBuffersOutdated) updateBuffers()
 
@@ -254,6 +272,12 @@ class StaticSpriteBatchRenderer {
 
     // Send uniform data to GPU
     glUniform4f(uniformGlobalColor, 0.0f, 1.0f, 1.0f, 1.0f)
+
+    // Send camera position to GPU
+    Using (MemoryStack.stackPush()) { stack =>
+        projectionMatrix.translate(-cameraX, -cameraY, 0f, viewMatrix)
+        glUniformMatrix4fv(uniformModelView, false, viewMatrix.get(stack.mallocFloat(16)))
+    }
 
     // Use batch's texture
     glBindTexture(GL_TEXTURE_2D, textureHandle)
