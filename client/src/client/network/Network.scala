@@ -1,4 +1,4 @@
-package client
+package client.network
 
 import java.io.{BufferedReader, IOException, InputStreamReader, PrintWriter}
 import java.net.Socket

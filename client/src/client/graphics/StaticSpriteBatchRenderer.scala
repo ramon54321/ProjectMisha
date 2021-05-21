@@ -1,4 +1,4 @@
-package client
+package client.graphics
 
 import org.lwjgl.opengl.GL11._
 import org.lwjgl.opengl.GL13._
@@ -12,7 +12,12 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.Using
 import org.lwjgl.system.MemoryStack
 
-class StaticSprite(val x: Float = 0, val y: Float = 0, val width: Float = 32, val height: Float = 32) {
+class StaticSprite(
+    val x: Float = 0,
+    val y: Float = 0,
+    val width: Float = 32,
+    val height: Float = 32
+) {
   // Create local copy of positions scaled to the local size of the sprite
   private val positions = StaticSprite.positions.clone()
   for (i <- 0 until 8) {
@@ -274,9 +279,13 @@ class StaticSpriteBatchRenderer {
     glUniform4f(uniformGlobalColor, 0.0f, 1.0f, 1.0f, 1.0f)
 
     // Send camera position to GPU
-    Using (MemoryStack.stackPush()) { stack =>
-        projectionMatrix.translate(-cameraX, -cameraY, 0f, viewMatrix)
-        glUniformMatrix4fv(uniformModelView, false, viewMatrix.get(stack.mallocFloat(16)))
+    Using(MemoryStack.stackPush()) { stack =>
+      projectionMatrix.translate(-cameraX, -cameraY, 0f, viewMatrix)
+      glUniformMatrix4fv(
+        uniformModelView,
+        false,
+        viewMatrix.get(stack.mallocFloat(16))
+      )
     }
 
     // Use batch's texture

@@ -1,6 +1,8 @@
 package client
 
 import shared.Threading
+import client.network.Network
+import client.game.Game
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -11,7 +13,8 @@ object Main {
       Benchmark.run(testNames.split(","))
     } else {
       Network.start()
-      Window.start()
+      Game
+      Window
       Threading.registerShutdownHook()
     }
   }

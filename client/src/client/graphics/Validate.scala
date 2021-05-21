@@ -1,4 +1,4 @@
-package client
+package client.graphics
 
 import org.lwjgl.opengl.GL20._
 
