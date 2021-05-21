@@ -20,6 +20,10 @@ object Constants {
   val SCREEN_HEIGHT = 720
 }
 
+object Game {
+
+}
+
 object Window {
   def start() = {
     System.out.println(f"Running with LWJGL version ${Version.getVersion}")
