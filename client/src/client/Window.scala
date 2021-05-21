@@ -16,11 +16,6 @@ import scala.util.Using
 import org.joml.Matrix4f
 import EventTag._
 
-object Constants {
-  val SCREEN_WIDTH = 1280
-  val SCREEN_HEIGHT = 720
-}
-
 object Window {
   System.out.println(f"Running with LWJGL version ${Version.getVersion}")
 
