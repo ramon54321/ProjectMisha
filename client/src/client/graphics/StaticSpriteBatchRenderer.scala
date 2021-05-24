@@ -12,52 +12,11 @@ import scala.collection.mutable.TreeSet
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Using
 import org.lwjgl.system.MemoryStack
+import client.Benchmark
 
-class StaticSprite(
-    val x: Float = 0,
-    val y: Float = 0,
-    val width: Float = 32,
-    val height: Float = 32
-) {
-  // Create local copy of positions scaled to the local size of the sprite
-  private val positions = StaticSprite.positions.clone()
-  for (i <- 0 until 8) {
-    if (i % 2 == 0) {
-      positions(i) *= width
-    } else {
-      positions(i) *= height
-    }
-  }
-  def getPositions(): Array[Float] = this.positions
-  def getColors(): Array[Float] = StaticSprite.colors
-  def getUvs(): Array[Float] = StaticSprite.uvs
-  def getIndexes(): Array[Int] = StaticSprite.indexes
-}
-object StaticSprite {
-  val positions = Array(
-    -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f
-  )
-  val colors = Array(
-    0.5f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.8f, 0.5f, 0.0f, 0.5f
-  )
-  val uvs = Array(
-    0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f
-  )
-  val indexes = Array[Int](
-    0, 1, 2, 2, 3, 0
-  )
-}
-
-class StaticSpriteBatchRenderer {
-  // Maximum number of sprites which can be batched
-  private val MAX_SPRITES = 10000
-
-  // Sorted tree of sprites to render in a single batch
-  private val sprites = new TreeSet[StaticSprite]()(new Ordering[StaticSprite] {
-    // Define sort to draw highest 'y' first (From background to foreground)
-    override def compare(x: StaticSprite, y: StaticSprite): Int =
-      if (x.y - y.y > 0) -1 else 1
-  })
+class StaticSpriteBatchRenderer(val maxSprites: Int = 512) {
+  // Keep track of sprites in this batch
+  private val sprites = new ArrayBuffer[StaticSprite]()
 
   // Keep track to know when to resend buffer data to GPU
   private var isBuffersOutdated = true
@@ -65,14 +24,29 @@ class StaticSpriteBatchRenderer {
   // Add sprite to batch if possible
   def addSprite(sprite: StaticSprite): Boolean = {
     // Do not add sprite if batch is full
-    if (sprites.size >= MAX_SPRITES) return false
+    if (sprites.size >= maxSprites) return false
 
     // Mark buffers as dirty to ensure buffer data resend to GPU on next render
     isBuffersOutdated = true
 
     // Add sprite to render batch
-    sprites.add(sprite)
+    sprites.addOne(sprite)
     return true
+  }
+
+  // Remove sprite from batch
+  def removeSprite(spriteId: Int): Unit = {
+    // Mark buffers as dirty to ensure buffer data resend to GPU on next render
+    isBuffersOutdated = true
+
+    // Get sprite index
+    val index = sprites.indexWhere(s => s.id == spriteId)
+
+    // Remove sprite from render batch
+    sprites.remove(index)
+  }
+  def removeSprite(sprite: StaticSprite): Unit = {
+    removeSprite(sprite.id)
   }
 
   // Generate OpenGL objects' handles
@@ -185,15 +159,19 @@ class StaticSpriteBatchRenderer {
     uniformMainTexture = glGetUniformLocation(shaderProgram, "mainTexture")
   }
   private def setupBuffers() = {
-    // Create VBOs with enough capacity to accomodate MAX_SPRITES
+    // Create VBOs with enough capacity to accomodate maxSprites
     glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
-    glBufferData(GL_ARRAY_BUFFER, MAX_SPRITES * 2 * 4, GL_STATIC_DRAW)
+    glBufferData(GL_ARRAY_BUFFER, maxSprites * 2 * 4 * 4, GL_DYNAMIC_DRAW)
     glBindBuffer(GL_ARRAY_BUFFER, vboColors)
-    glBufferData(GL_ARRAY_BUFFER, MAX_SPRITES * 3 * 4, GL_STATIC_DRAW)
+    glBufferData(GL_ARRAY_BUFFER, maxSprites * 3 * 4 * 4, GL_DYNAMIC_DRAW)
     glBindBuffer(GL_ARRAY_BUFFER, vboUvs)
-    glBufferData(GL_ARRAY_BUFFER, MAX_SPRITES * 2 * 4, GL_STATIC_DRAW)
+    glBufferData(GL_ARRAY_BUFFER, maxSprites * 2 * 4 * 4, GL_DYNAMIC_DRAW)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vio)
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_SPRITES * 6 * 4, GL_STATIC_DRAW)
+    glBufferData(
+      GL_ELEMENT_ARRAY_BUFFER,
+      maxSprites * 6 * 4 * 4,
+      GL_DYNAMIC_DRAW
+    )
 
     // Create VAO and setup Vertex Attributes
     glBindVertexArray(vao)
@@ -223,49 +201,64 @@ class StaticSpriteBatchRenderer {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vio)
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indexes)
   }
+  private val positions = new Array[Float](maxSprites * 2 * 4)
+  private val colors = new Array[Float](maxSprites * 3 * 4)
+  private val uvs = new Array[Float](maxSprites * 2 * 4)
+  private val indexes = new Array[Int](maxSprites * 6 * 4)
   private def updateBuffers() = {
     // Mark buffers as clean
     isBuffersOutdated = false
 
-    // Create temporary collections for buffers
-    // TODO: Preallocate arrays instead of arraybuffers
-    val positions = new ArrayBuffer[Float]()
-    val colors = new ArrayBuffer[Float]()
-    val uvs = new ArrayBuffer[Float]()
-    val indexes = new ArrayBuffer[Int]()
+    // Sort sprites
+    sprites.sortInPlaceWith((a, b) => a.y - b.y < 0)
 
     // Consecutively add sprites' attributes and indexes into buffers
     var spriteIndex = 0
     sprites.foreach(sprite => {
       // Add sprite positions to positions collection with sprite's own position offset
-      positions.addAll(sprite.getPositions())
-      val offset = spriteIndex * 8
+      val spritePositions = sprite.getPositions()
+      val positionOffset = spriteIndex * 8
       for (i <- 0 until 8) {
         // Add sprite's position to each base vertex position
         if (i % 2 == 0) {
-          positions(offset + i) += sprite.x
+          positions(positionOffset + i) = spritePositions(i) + sprite.x
         } else {
-          positions(offset + i) += sprite.y
+          positions(positionOffset + i) = spritePositions(i) + sprite.y
         }
       }
+
       // Add sprite colors to colors collection
-      colors.addAll(sprite.getColors())
+      val spriteColors = sprite.getColors()
+      val colorOffset = spriteIndex * 12
+      for (i <- 0 until 12) {
+        colors(colorOffset + i) = spriteColors(i)
+      }
 
       // Add sprite uvs to uvs collection
-      uvs.addAll(sprite.getUvs())
+      val spriteUvs = sprite.getUvs()
+      val uvOffset = spriteIndex * 8
+      for (i <- 0 until 8) {
+        uvs(uvOffset + i) = spriteUvs(i)
+      }
 
       // Add sprite indexes to indexes collection with offset
-      indexes.addAll(sprite.getIndexes().map(i => i + spriteIndex * 4))
+      val spriteIndexes = sprite.getIndexes().map(i => i + spriteIndex * 4)
+      val indexOffset = spriteIndex * 6
+      for (i <- 0 until 6) {
+        indexes(indexOffset + i) = spriteIndexes(i)
+      }
 
       spriteIndex += 1
     })
 
     // Send aggregated buffers to GPU
-    sendBuffers(positions.toArray, colors.toArray, uvs.toArray, indexes.toArray)
+    sendBuffers(positions, colors, uvs, indexes)
   }
-  def render(projectionMatrix: Matrix4fc, cameraX: Float, cameraY: Float) = {
+  def flush(projectionMatrix: Matrix4fc, cameraX: Float, cameraY: Float) = {
     // Update buffers with sprites' data if needed
+    Benchmark.startTag("batchRendererUpdateBuffers")
     if (isBuffersOutdated) updateBuffers()
+    Benchmark.endTag("batchRendererUpdateBuffers")
 
     // Use batch's shader program
     glUseProgram(shaderProgram)
@@ -293,6 +286,8 @@ class StaticSpriteBatchRenderer {
     glBindTexture(GL_TEXTURE_2D, textureHandle)
 
     // Submit draw call to GPU
+    Benchmark.startTag("batchRendererDrawElements")
     glDrawElements(GL_TRIANGLES, 6 * sprites.size, GL_UNSIGNED_INT, 0)
+    Benchmark.endTag("batchRendererDrawElements")
   }
 }

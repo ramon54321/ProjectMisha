@@ -136,6 +136,7 @@ object Window {
     if (currentFrameTime - lastSecondTime > 1000000000) {
       lastSecondTime = currentFrameTime
       lastFrameCount = frameCount
+      println("FPS: " + lastFrameCount)
       frameCount = 0
     }
     lastFrameDeltaTime = ((currentFrameTime - lastFrameTime) / 1000000000f)

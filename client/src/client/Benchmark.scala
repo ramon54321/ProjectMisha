@@ -13,7 +13,8 @@ object Benchmark {
 
   val tests = new HashMap[String, () => Unit]()
 
-  def run(names: Array[String]) = names.foreach(name => tests.get(name.toLowerCase()).map(test => test()))
+  def run(names: Array[String]) =
+    names.foreach(name => tests.get(name.toLowerCase()).map(test => test()))
 
   tests.addAll(
     Array(
@@ -94,7 +95,7 @@ object Benchmark {
               val fs = Array.fill(N) { -45f + Random.nextFloat() * 90f }
               start()
               for (i <- 0 until N) {
-                elements(i).ortho(ls(i), rs(i), bs(i), ts(i), ns(i), fs(i)) 
+                elements(i).ortho(ls(i), rs(i), bs(i), ts(i), ns(i), fs(i))
               }
               end()
             }
@@ -166,6 +167,40 @@ object Benchmark {
           )
       ),
       (
+        "SortWithArrayBufferObjects".toLowerCase(),
+        () =>
+          test(
+            "SortWith Array Buffer Objects",
+            (start, end) => {
+              case class Person(age: Int)
+              val elements = new ArrayBuffer[Person]()
+              for (i <- 0 until N) {
+                elements.addOne(new Person(Random.nextInt(N / 2)))
+              }
+              start()
+              elements.sortWith((a, b) => a.age < b.age)
+              end()
+            }
+          )
+      ),
+      (
+        "SortInPlaceWithArrayBufferObjects".toLowerCase(),
+        () =>
+          test(
+            "SortInPlaceWith Array Buffer Objects",
+            (start, end) => {
+              case class Person(age: Int)
+              val elements = new ArrayBuffer[Person]()
+              for (i <- 0 until N) {
+                elements.addOne(new Person(Random.nextInt(N / 2)))
+              }
+              start()
+              elements.sortInPlaceWith((a, b) => a.age < b.age)
+              end()
+            }
+          )
+      ),
+      (
         "ArrayBufferAddAll".toLowerCase(),
         () =>
           test(
@@ -220,5 +255,21 @@ object Benchmark {
     }
     val averageTime = times.reduce((a, b) => a + b) / times.length
     println(name + ": Avg " + averageTime + "s")
+  }
+
+  private val timerTags = new HashMap[String, Long]()
+
+  def startTag(tag: String) = {
+    timerTags.addOne(tag, System.nanoTime())
+  }
+
+  def endTag(tag: String): Unit = {
+    val startTime = timerTags.get(tag)
+    if (startTime == null) return
+    val elapsedTime = System.nanoTime() - startTime.get
+    if (Main.args.contains("timings"))
+      println(
+        "BENCHMARK: " + tag + " - " + (elapsedTime.toFloat / 1000000f) + "ms"
+      )
   }
 }
