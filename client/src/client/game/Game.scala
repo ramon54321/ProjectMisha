@@ -18,11 +18,10 @@ object Game {
 
   var projectionMatrix: Matrix4f = null
   var baseBatchRenderer: StaticSpriteBatchRenderer = null
+  var noidBatchRenderer: DynamicSpriteBatchRenderer = null
 
   var cameraX = 0f
   var cameraY = 0f
-
-  private val baseStaticSprites = new ArrayBuffer[StaticSprite]()
 
   private def glReady() = {
     projectionMatrix = new Matrix4f().ortho(
@@ -46,12 +45,28 @@ object Game {
         )
       )
     }
+
+    noidBatchRenderer = new DynamicSpriteBatchRenderer(8192)
+    for (i <- 0 until 4096) {
+      noidBatchRenderer.addSprite(
+        new StaticSprite(
+          i,
+          -600 + Random.nextFloat() * 1200,
+          -400 + Random.nextFloat() * 800,
+          32,
+          32
+        )
+      )
+    }
   }
 
   private def glRender() = {
     Benchmark.startTag("baseBatchRendererFlush")
     baseBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
     Benchmark.endTag("baseBatchRendererFlush")
+    Benchmark.startTag("noidBatchRendererFlush")
+    noidBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
+    Benchmark.endTag("noidBatchRendererFlush")
   }
 
   private def glUpdate() = {

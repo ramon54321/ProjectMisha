@@ -14,7 +14,7 @@ import scala.util.Using
 import org.lwjgl.system.MemoryStack
 import client.Benchmark
 
-class StaticSpriteBatchRenderer(val maxSprites: Int = 512) {
+class DynamicSpriteBatchRenderer(val maxSprites: Int = 512) {
   // Keep track of sprites in this batch
   private val sprites = new ArrayBuffer[StaticSprite]()
 
@@ -256,9 +256,10 @@ class StaticSpriteBatchRenderer(val maxSprites: Int = 512) {
   }
   def flush(projectionMatrix: Matrix4fc, cameraX: Float, cameraY: Float) = {
     // Update buffers with sprites' data if needed
-    Benchmark.startTag("staticBatchRendererUpdateBuffers")
-    if (isBuffersOutdated) updateBuffers()
-    Benchmark.endTag("staticBatchRendererUpdateBuffers")
+    Benchmark.startTag("dynamicBatchRendererUpdateBuffers")
+    // if (isBuffersOutdated) updateBuffers()
+    updateBuffers()
+    Benchmark.endTag("dynamicBatchRendererUpdateBuffers")
 
     // Use batch's shader program
     glUseProgram(shaderProgram)
@@ -286,8 +287,8 @@ class StaticSpriteBatchRenderer(val maxSprites: Int = 512) {
     glBindTexture(GL_TEXTURE_2D, textureHandle)
 
     // Submit draw call to GPU
-    Benchmark.startTag("staticBatchRendererDrawElements")
+    Benchmark.startTag("dynamicBatchRendererDrawElements")
     glDrawElements(GL_TRIANGLES, 6 * sprites.size, GL_UNSIGNED_INT, 0)
-    Benchmark.endTag("staticBatchRendererDrawElements")
+    Benchmark.endTag("dynamicBatchRendererDrawElements")
   }
 }

@@ -8,7 +8,7 @@ class StaticSprite(
     val height: Float = 32
 ) {
   // Create local copy of positions scaled to the local size of the sprite
-  private val positions = StaticSprite.positions.clone()
+  private val positions = Sprite.positions.clone()
   for (i <- 0 until 8) {
     if (i % 2 == 0) {
       positions(i) *= width
@@ -17,11 +17,12 @@ class StaticSprite(
     }
   }
   def getPositions(): Array[Float] = this.positions
-  def getColors(): Array[Float] = StaticSprite.colors
-  def getUvs(): Array[Float] = StaticSprite.uvs
-  def getIndexes(): Array[Int] = StaticSprite.indexes
+  def getColors(): Array[Float] = Sprite.colors
+  def getUvs(): Array[Float] = Sprite.uvs
+  def getIndexes(): Array[Int] = Sprite.indexes
 }
-object StaticSprite {
+
+object Sprite {
   val positions = Array(
     -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f
   )
