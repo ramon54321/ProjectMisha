@@ -14,7 +14,7 @@ import scala.util.Using
 import org.lwjgl.system.MemoryStack
 import client.Benchmark
 
-class DynamicSpriteBatchRenderer(val maxSprites: Int = 512) {
+class DynamicSpriteBatchRenderer(val maxSprites: Int = 512) extends BatchRenderer {
   // Keep track of sprites in this batch
   private val sprites = new ArrayBuffer[StaticSprite]()
 

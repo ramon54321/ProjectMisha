@@ -7,6 +7,7 @@ import org.lwjgl.opengl.GL15._
 import org.lwjgl.opengl.GL20._
 import org.lwjgl.opengl.GL30._
 import org.joml._
+import util.control.Breaks._
 import org.lwjgl.stb.STBTruetype._
 import org.lwjgl.system.MemoryUtil.NULL
 import org.lwjgl.system.MemoryStack.stackPush
@@ -26,7 +27,7 @@ class TextBatchRenderer(
     val position: Vector2fc,
     val color: Vector4fc,
     val fontHeight: Int
-) {
+) extends BatchRenderer {
   // Length of string
   private val maxChars: Int = 512
 
@@ -61,9 +62,10 @@ class TextBatchRenderer(
   private val bitmapX = 512
   private val bitmapY = 512
   private var charInfo = STBTTBakedChar.malloc(96)
-  private var charAscent = 0
-  private var charDesent = 0
-  private var charLineGap = 0
+  private var fontAscent = 0
+  private var fontDescent = 0
+  private var fontLineGap = 0
+  private var fontScale = 0f
 
   // Setup batch object
   setupTexture()
@@ -106,13 +108,14 @@ class TextBatchRenderer(
     // Get font VMetrics
     Using(stackPush()) { stack =>
       val pAscent = stack.mallocInt(1)
-      val pDesent = stack.mallocInt(1)
+      val pDescent = stack.mallocInt(1)
       val pLineGap = stack.mallocInt(1)
-      stbtt_GetFontVMetrics(fontInfo, pAscent, pDesent, pLineGap)
-      charAscent = pAscent.get(0)
-      charDesent = pDesent.get(0)
-      charLineGap = pLineGap.get(0)
+      stbtt_GetFontVMetrics(fontInfo, pAscent, pDescent, pLineGap)
+      fontAscent = pAscent.get(0)
+      fontDescent = pDescent.get(0)
+      fontLineGap = pLineGap.get(0)
     }
+    fontScale = stbtt_ScaleForPixelHeight(fontInfo, fontHeight)
 
     // Send texture data to GPU
     glTexImage2D(
@@ -237,42 +240,59 @@ class TextBatchRenderer(
       val verticalOffset = (fontHeight / 2).toInt
 
       for (j <- 0 until text.size) {
-        val charToDraw = text.charAt(j).toInt
-        stbtt_GetBakedQuad(
-          charInfo,
-          bitmapX,
-          bitmapY,
-          charToDraw - 32,
-          x,
-          y,
-          quad,
-          true
-        )
+        breakable {
+          val charToDraw = text.charAt(j).toInt
 
-        val positionOffset = j * 8
-        positions(positionOffset + 0) = quad.x0 + position.x()
-        positions(positionOffset + 1) = -quad.y1 - verticalOffset + position.y()
-        positions(positionOffset + 2) = quad.x1 + position.x()
-        positions(positionOffset + 3) = -quad.y1 - verticalOffset + position.y()
-        positions(positionOffset + 4) = quad.x0 + position.x()
-        positions(positionOffset + 5) = -quad.y0 - verticalOffset + position.y()
-        positions(positionOffset + 6) = quad.x1 + position.x()
-        positions(positionOffset + 7) = -quad.y0 - verticalOffset + position.y()
+          // Move down a line and move to next char if char is newline
+          if (charToDraw == '\n') {
+            y.put(
+              0,
+              y.get(0) + (fontAscent - fontDescent + fontLineGap) * fontScale
+            )
+            x.put(0, 0.0f)
+            break
+          }
 
-        val uvOffset = j * 8
-        uvs(uvOffset + 0) = quad.s0
-        uvs(uvOffset + 1) = quad.t1
-        uvs(uvOffset + 2) = quad.s1
-        uvs(uvOffset + 3) = quad.t1
-        uvs(uvOffset + 4) = quad.s0
-        uvs(uvOffset + 5) = quad.t0
-        uvs(uvOffset + 6) = quad.s1
-        uvs(uvOffset + 7) = quad.t0
+          stbtt_GetBakedQuad(
+            charInfo,
+            bitmapX,
+            bitmapY,
+            charToDraw - 32,
+            x,
+            y,
+            quad,
+            true
+          )
 
-        val spriteIndexes = Sprite.indexes.map(i => i + j * 4)
-        val indexOffset = j * 6
-        for (i <- 0 until 6) {
-          indexes(indexOffset + i) = spriteIndexes(i)
+          val positionOffset = j * 8
+          positions(positionOffset + 0) = quad.x0 + position.x()
+          positions(positionOffset + 1) =
+            -quad.y1 - verticalOffset + position.y()
+          positions(positionOffset + 2) = quad.x1 + position.x()
+          positions(positionOffset + 3) =
+            -quad.y1 - verticalOffset + position.y()
+          positions(positionOffset + 4) = quad.x0 + position.x()
+          positions(positionOffset + 5) =
+            -quad.y0 - verticalOffset + position.y()
+          positions(positionOffset + 6) = quad.x1 + position.x()
+          positions(positionOffset + 7) =
+            -quad.y0 - verticalOffset + position.y()
+
+          val uvOffset = j * 8
+          uvs(uvOffset + 0) = quad.s0
+          uvs(uvOffset + 1) = quad.t1
+          uvs(uvOffset + 2) = quad.s1
+          uvs(uvOffset + 3) = quad.t1
+          uvs(uvOffset + 4) = quad.s0
+          uvs(uvOffset + 5) = quad.t0
+          uvs(uvOffset + 6) = quad.s1
+          uvs(uvOffset + 7) = quad.t0
+
+          val spriteIndexes = Sprite.indexes.map(i => i + j * 4)
+          val indexOffset = j * 6
+          for (i <- 0 until 6) {
+            indexes(indexOffset + i) = spriteIndexes(i)
+          }
         }
       }
     }
