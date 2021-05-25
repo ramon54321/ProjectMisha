@@ -105,11 +105,11 @@ object Window {
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
 
   // Track Frame Times
-  var frameCount = 0
-  var lastFrameCount = 0
-  var lastSecondTime = System.nanoTime()
-  var lastFrameTime = System.nanoTime()
-  var lastFrameDeltaTime: Float = 0
+  private var frameCount = 0
+  private var lastFrameCount = 0
+  private var lastSecondTime = System.nanoTime()
+  private var lastFrameTime = System.nanoTime()
+  private var lastFrameDeltaTime: Float = 0
   def deltaTime() = lastFrameDeltaTime
   def fps() = lastFrameCount
 
@@ -136,6 +136,7 @@ object Window {
     if (currentFrameTime - lastSecondTime > 1000000000) {
       lastSecondTime = currentFrameTime
       lastFrameCount = frameCount
+      Events.emit(EVENT_TICKER_SECOND)
       println("FPS: " + lastFrameCount)
       frameCount = 0
     }

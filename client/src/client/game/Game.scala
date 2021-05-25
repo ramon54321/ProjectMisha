@@ -10,15 +10,19 @@ import org.lwjgl.glfw.GLFW._
 import scala.util.Random
 import scala.collection.mutable.ArrayBuffer
 import client.Benchmark
+import org.joml.Vector4f
+import org.joml.Vector2f
 
 object Game {
   Events.on(EVENT_GL_READY, glReady)
   Events.on(EVENT_GL_RENDER, glRender)
   Events.on(EVENT_GL_UPDATE, glUpdate)
+  Events.on(EVENT_TICKER_SECOND, tickerSecond)
 
   var projectionMatrix: Matrix4f = null
   var baseBatchRenderer: StaticSpriteBatchRenderer = null
   var noidBatchRenderer: DynamicSpriteBatchRenderer = null
+  var fpsBatchRenderer: TextBatchRenderer = null
 
   var cameraX = 0f
   var cameraY = 0f
@@ -58,6 +62,17 @@ object Game {
         )
       )
     }
+
+    fpsBatchRenderer = new TextBatchRenderer(
+      "---",
+      new Vector2f(
+        -Constants.SCREEN_WIDTH / 2 + 16,
+        Constants.SCREEN_HEIGHT / 2 - 16
+      ),
+      // new Vector4f(0.866f, 0.274f, 0.274f, 1.0f),
+      new Vector4f(0.533f, 0.866f, 0.274f, 1.0f),
+      18
+    )
   }
 
   private def glRender() = {
@@ -67,6 +82,9 @@ object Game {
     Benchmark.startTag("noidBatchRendererFlush")
     noidBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
     Benchmark.endTag("noidBatchRendererFlush")
+    Benchmark.startTag("fpsBatchRendererFlush")
+    fpsBatchRenderer.flush(projectionMatrix, 0, 0)
+    Benchmark.endTag("fpsBatchRendererFlush")
   }
 
   private def glUpdate() = {
@@ -83,5 +101,12 @@ object Game {
     if (Window.keyDown(GLFW_KEY_W)) {
       cameraY += 400 * deltaTime
     }
+    if (Window.keyDown(GLFW_KEY_P)) {
+      fpsBatchRenderer.setText("It worked!")
+    }
+  }
+
+  private def tickerSecond() = {
+    fpsBatchRenderer.setText("FPS: " + Window.fps())
   }
 }
