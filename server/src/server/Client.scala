@@ -3,20 +3,27 @@ package server
 import java.io.{BufferedReader, IOException, InputStreamReader, PrintWriter}
 import java.net.Socket
 
-class Client(val socket: Socket) extends Thread {
+class Client(private val socket: Socket) extends Thread {
+  private var out: PrintWriter = null
+  private var in: BufferedReader = null
+
+  def send(message: String): Boolean = {
+    if (out == null) return false
+    out.println(message)
+    return true
+  }
+
   override def run() = {
     try {
-      val out = new PrintWriter(socket.getOutputStream(), true)
-      val in = new BufferedReader(
+      out = new PrintWriter(socket.getOutputStream(), true)
+      in = new BufferedReader(
         new InputStreamReader(socket.getInputStream())
       )
 
-      out.println("Hello new client, how are you?")
-
-      var inputLine = in.readLine()
-      while (inputLine != null) {
-        System.out.println("Client Says: " + inputLine)
-        inputLine = in.readLine()
+      var message = in.readLine()
+      while (message != null) {
+        Server.enqueueClientMessage(this, message)
+        message = in.readLine()
       }
     } catch {
       case e: IOException => println(e)

@@ -4,8 +4,11 @@ import shared.Threading
 
 object Main {
   def main(args: Array[String]) = {
-    val server = new Server()
-    server.start()
+    Server
     Threading.registerShutdownHook()
+
+    Thread.sleep(5000)
+
+    Server.broadcast("Hello, world!")
   }
 }

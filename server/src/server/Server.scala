@@ -2,44 +2,50 @@ package server
 
 import java.io.IOException
 import java.net.ServerSocket
-import java.util.{ArrayList, List}
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.Queue
 
-class Server {
+object Server {
+  private var listenerThread: Thread = null
+  private var serverSocket: ServerSocket = null
 
-  private var listenerThread: Thread = _
-  private var serverSocket: ServerSocket = _
+  private val clients = new ArrayBuffer[Client]()
+  private val clientMessageQueue = new Queue[(Client, String)]()
 
-  private val clients: List[Client] = new ArrayList()
-
-  def start() = {
-    val self = this
-    this.listenerThread = new Thread() {
-      override def run() = {
-        try {
-          self.serverSocket = new ServerSocket(4444)
-          while (true) {
-            self.waitForClient()
-          }
-        } catch {
-          case e: IOException => println(e)
+  this.listenerThread = new Thread() {
+    override def run() = {
+      try {
+        serverSocket = new ServerSocket(4444)
+        while (true) {
+          waitForClient()
         }
+      } catch {
+        case e: IOException => println(e)
       }
     }
-    this.listenerThread.start()
   }
+  this.listenerThread.start()
 
   private def waitForClient() = {
-    val socket = this.serverSocket.accept()
+    val socket = serverSocket.accept()
     val client = new Client(socket)
     client.start()
-    this.clients.add(client)
+    clients.addOne(client)
+  }
+
+  def enqueueClientMessage(client: Client, message: String) = {
+    clientMessageQueue.enqueue((client, message))
+  }
+
+  def broadcast(message: String) = {
+    clients.foreach(client => client.send(message))
   }
 
   def shutdown() = {
     try {
-      this.listenerThread.interrupt()
-      this.clients.forEach(client => client.interrupt())
-      this.serverSocket.close()
+      listenerThread.interrupt()
+      clients.foreach(client => client.interrupt())
+      serverSocket.close()
     } catch {
       case e: IOException => println(e)
     }
