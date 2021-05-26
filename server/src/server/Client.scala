@@ -22,7 +22,7 @@ class Client(private val socket: Socket) extends Thread {
 
       var message = in.readLine()
       while (message != null) {
-        Server.enqueueClientMessage(this, message)
+        Network.enqueueClientMessage(this, message)
         message = in.readLine()
       }
     } catch {

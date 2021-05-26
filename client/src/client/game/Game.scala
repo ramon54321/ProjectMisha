@@ -12,6 +12,7 @@ import org.joml.Vector4f
 import org.joml.Vector2f
 import scala.util.Random
 import scala.collection.mutable.HashMap
+import client.network.Network
 
 object Game {
   // Register Handlers for Events
@@ -107,6 +108,12 @@ object Game {
 
   private def glUpdate() = {
     val deltaTime = Window.deltaTime()
+
+    // Handle Server Messages
+    val networkMessages = Network.dequeueMessages()
+    if (!networkMessages.isEmpty) println(networkMessages.mkString("\n"))
+
+    // Keyboard Input
     if (Window.keyDown(GLFW_KEY_A)) {
       cameraX -= 400 * deltaTime
     }

@@ -30,6 +30,15 @@ object Network extends Thread {
     }
   }
 
+  def dequeueMessages(): Array[String] = {
+    val messages = new Array[String](messageQueue.length)
+    var i = 0
+    while(messageQueue.length > 0) {
+      messages(i) = messageQueue.dequeue()
+    }
+    return messages
+  }
+
   def send(message: String): Boolean = {
     if (out == null) return false
     out.println(message)

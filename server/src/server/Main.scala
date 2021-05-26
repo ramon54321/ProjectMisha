@@ -4,11 +4,8 @@ import shared.Threading
 
 object Main {
   def main(args: Array[String]) = {
-    Server
+    Network.start()
+    Game.start()
     Threading.registerShutdownHook()
-
-    Thread.sleep(5000)
-
-    Server.broadcast("Hello, world!")
   }
 }

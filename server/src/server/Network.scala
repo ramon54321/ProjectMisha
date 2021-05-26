@@ -5,26 +5,23 @@ import java.net.ServerSocket
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.Queue
 
-object Server {
+object Network extends Thread {
   private var listenerThread: Thread = null
   private var serverSocket: ServerSocket = null
 
   private val clients = new ArrayBuffer[Client]()
   private val clientMessageQueue = new Queue[(Client, String)]()
 
-  this.listenerThread = new Thread() {
-    override def run() = {
-      try {
-        serverSocket = new ServerSocket(4444)
-        while (true) {
-          waitForClient()
-        }
-      } catch {
-        case e: IOException => println(e)
+  override def run() = {
+    try {
+      serverSocket = new ServerSocket(4444)
+      while (true) {
+        waitForClient()
       }
+    } catch {
+      case e: IOException => println(e)
     }
   }
-  this.listenerThread.start()
 
   private def waitForClient() = {
     val socket = serverSocket.accept()
