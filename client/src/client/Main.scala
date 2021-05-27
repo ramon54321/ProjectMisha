@@ -4,6 +4,9 @@ import shared.Threading
 import client.network.Network
 import client.game.Game
 import scala.collection.mutable.ArrayBuffer
+import shared.NetworkState
+import scala.collection.mutable.HashMap
+import java.lang
 
 object Main {
   var args: Array[String] = null
@@ -16,6 +19,7 @@ object Main {
       Benchmark.run(testNames.split(","))
     } else {
       Network.start()
+      NetworkState.asReader()
       Game
       Window
       Threading.registerShutdownHook()

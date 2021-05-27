@@ -3,6 +3,7 @@ package client.network
 import java.io.{BufferedReader, IOException, InputStreamReader, PrintWriter}
 import java.net.Socket
 import scala.collection.mutable.Queue
+import shared.QueueUtils
 
 object Network extends Thread {
   private var socket: Socket = null
@@ -30,14 +31,7 @@ object Network extends Thread {
     }
   }
 
-  def dequeueMessages(): Array[String] = {
-    val messages = new Array[String](messageQueue.length)
-    var i = 0
-    while(messageQueue.length > 0) {
-      messages(i) = messageQueue.dequeue()
-    }
-    return messages
-  }
+  def dequeueMessages(): Array[String] = QueueUtils.dequeueToArray(messageQueue)
 
   def send(message: String): Boolean = {
     if (out == null) return false
