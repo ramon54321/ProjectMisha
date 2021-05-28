@@ -44,14 +44,14 @@ object Game {
     )
 
     baseBatchRenderer = new StaticSpriteBatchRenderer(8192)
-    for (i <- 0 until 4096) {
+    for (i <- 0 until 2) {
       baseBatchRenderer.addSprite(
         new StaticSprite(
           i,
           -600 + Random.nextFloat() * 1200,
           -400 + Random.nextFloat() * 800,
-          32,
-          32
+          128,
+          128
         )
       )
     }

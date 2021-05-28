@@ -79,20 +79,23 @@ class StaticSpriteBatchRenderer(val maxSprites: Int = 512) extends BatchRenderer
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 
+    val texture = Textures.get("empty.png")
+
     // Send texture data to GPU
     glTexImage2D(
       GL_TEXTURE_2D,
       0,
       GL_RGBA,
-      2,
-      2,
+      texture.width,
+      texture.height,
       0,
       GL_RGBA,
-      GL_FLOAT,
-      Array(
-        1.0f, 0.0f, 0.0f, 0.9f, 1.0f, 1.0f, 1.0f, 0.9f, 1.0f, 1.0f, 1.0f, 0.9f,
-        1.0f, 1.0f, 1.0f, 0.9f
-      )
+      GL_UNSIGNED_BYTE,
+      texture.buffer
+      // Array(
+      //   1.0f, 0.0f, 0.0f, 0.9f, 1.0f, 1.0f, 1.0f, 0.9f, 1.0f, 1.0f, 1.0f, 0.9f,
+      //   1.0f, 1.0f, 1.0f, 0.9f
+      // )
     )
 
     // Generate mipmap
