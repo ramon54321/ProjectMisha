@@ -13,6 +13,7 @@ import org.joml.Vector2f
 import scala.util.Random
 import scala.collection.mutable.HashMap
 import client.network.Network
+import shared.NetworkState
 
 object Game {
   // Register Handlers for Events
@@ -111,7 +112,7 @@ object Game {
 
     // Handle Server Messages
     val networkMessages = Network.dequeueMessages()
-    if (!networkMessages.isEmpty) println(networkMessages.mkString("\n"))
+    networkMessages.foreach(NetworkState.applyPatch)
 
     // Keyboard Input
     if (Window.keyDown(GLFW_KEY_A)) {
