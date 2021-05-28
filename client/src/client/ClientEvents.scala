@@ -1,6 +1,6 @@
 package client
 
-import shared.EventEmitter
+import shared.Events
 
 object EventTag extends Enumeration {
   type EventTag = Value
@@ -8,4 +8,4 @@ object EventTag extends Enumeration {
     Value
 }
 
-object Events extends EventEmitter[EventTag.EventTag] {}
+object ClientEvents extends Events[EventTag.EventTag] {}

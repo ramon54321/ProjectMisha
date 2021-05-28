@@ -1,20 +1,18 @@
 package server
 
-import shared.NetworkState
+import server.EventTag._
 
-object Game extends Thread {
-  override def run(): Unit = {
-    println("Game Running...")
-    while (true) {
-      Thread.sleep(1000)
-      println("Tick")
+object Game {
+  ServerEvents.on(EVENT_TICK, () => tick())
 
-      // Game Logic
-      NetworkState.setWorldName("Anderson")
+  private def tick() = {
+    println("Tick")
+    
+    // Game Logic
+    ServerNetworkState.setWorldName("Anderson")
 
-      // Send Network Updates
-      val patches = NetworkState.dequeuePatches()
-      patches.foreach(Network.broadcast)
-    }
+    // Send Network Updates
+    val patches = ServerNetworkState.dequeuePatches()
+    patches.foreach(Network.broadcast)
   }
 }

@@ -2,7 +2,7 @@ package shared
 
 import scala.collection.mutable.Queue
 
-object NetworkState extends Recordable {
+abstract class NetworkState extends Recordable {
   private var worldName: String = "Unknown"
   def getWorldName = worldName
   def setWorldName(value: String) = {

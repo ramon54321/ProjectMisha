@@ -99,7 +99,7 @@ object Window {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
   // Game Layer
-  Events.emit(EVENT_GL_READY)
+  ClientEvents.emit(EVENT_GL_READY)
 
   // Set the clear color
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
@@ -119,7 +119,7 @@ object Window {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     // Emit Render
-    Events.emit(EVENT_GL_RENDER)
+    ClientEvents.emit(EVENT_GL_RENDER)
 
     // Swap the color buffers
     glfwSwapBuffers(window)
@@ -128,7 +128,7 @@ object Window {
     glfwPollEvents()
 
     // Emit Update
-    Events.emit(EVENT_GL_UPDATE)
+    ClientEvents.emit(EVENT_GL_UPDATE)
 
     // Update Frame Times
     val currentFrameTime = System.nanoTime()
@@ -136,7 +136,7 @@ object Window {
     if (currentFrameTime - lastSecondTime > 1000000000) {
       lastSecondTime = currentFrameTime
       lastFrameCount = frameCount
-      Events.emit(EVENT_TICKER_SECOND)
+      ClientEvents.emit(EVENT_TICKER_SECOND)
       println("FPS: " + lastFrameCount)
       frameCount = 0
     }

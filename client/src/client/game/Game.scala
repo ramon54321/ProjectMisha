@@ -1,6 +1,6 @@
 package client.game
 
-import client.Events
+import client.ClientEvents
 import client.EventTag._
 import client.graphics._
 import client.Benchmark
@@ -14,13 +14,15 @@ import scala.util.Random
 import scala.collection.mutable.HashMap
 import client.network.Network
 import shared.NetworkState
+import client.ClientNetworkState
 
 object Game {
-  // Register Handlers for Events
-  Events.on(EVENT_GL_READY, glReady)
-  Events.on(EVENT_GL_RENDER, glRender)
-  Events.on(EVENT_GL_UPDATE, glUpdate)
-  Events.on(EVENT_TICKER_SECOND, tickerSecond)
+  ClientEvents.on(EVENT_GL_READY, () => glReady())
+  ClientEvents.on(EVENT_GL_RENDER, () => glRender())
+  ClientEvents.on(EVENT_GL_UPDATE, () => glUpdate())
+  ClientEvents.on(EVENT_TICKER_SECOND, () => tickerSecond())
+
+  ClientNetworkState.Events.on("setWorldName", args => println("Hook: " + args))
 
   var projectionMatrix: Matrix4f = null
   var baseBatchRenderer: StaticSpriteBatchRenderer = null
@@ -112,7 +114,7 @@ object Game {
 
     // Handle Server Messages
     val networkMessages = Network.dequeueMessages()
-    networkMessages.foreach(NetworkState.applyPatch)
+    networkMessages.foreach(ClientNetworkState.applyPatch)
 
     // Keyboard Input
     if (Window.keyDown(GLFW_KEY_A)) {

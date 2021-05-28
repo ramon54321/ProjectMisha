@@ -19,7 +19,7 @@ object Main {
       Benchmark.run(testNames.split(","))
     } else {
       Network.start()
-      NetworkState.asReader()
+      ClientNetworkState
       Game
       Window
       Threading.registerShutdownHook()
