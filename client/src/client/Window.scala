@@ -18,7 +18,7 @@ import EventTag._
 import client.game.Game
 
 object Window {
-  System.out.println(f"Running with LWJGL version ${Version.getVersion}")
+  System.out.println(f"Running with LWJGL version ${Version.getVersion} on display ${System.getenv("DISPLAY")}")
 
   GLFWErrorCallback.createPrint(System.err).set()
 
