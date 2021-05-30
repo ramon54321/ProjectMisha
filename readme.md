@@ -67,21 +67,51 @@ Mill can now be run normally and it should spawn a window on the host.
 
  - Client
    - Graphics
-     - OpenGL 4 Context
-     - Sprites
-       - Ordered top to bottom, back to front
-       - Static in World - 15,000 on screen - No world limit
-       - Dynamic in World - 1,000 on screen - No world limit
-       - Disable Sprites off screen (Culling) - QuadTree
-     - Text
-       - Updatable
-     - Input
-       - Keyboard
-       - Mouse
+     - Window (OpenGL 4 Context)
+       - Input
+         - Keyboard
+         - Mouse
+     - Batch Renderers
+       - Text
+         - Updatable
+       - Sprites
+         - Static - 15,000 on screen - No world limit
+         - Dynamic - 1,000 on screen - No world limit
+         - Ordered top to bottom, back to front
+         - Disable Sprites off screen (Culling) - QuadTree
+   - Events
+     - GL_READY
+     - GL_RENDER
+     - GL_UPDATE
+     - TICKER_SECOND
+   - Network
+     - Queue of messages from server
+   - Game
      - Camera
        - Pan
-   - Events
-   - Network
-   - Game
+     - Dequeue and process network messages
  - Server
+   - Events
+     - START
+     - TICK
+   - Network
+     - Queue of messages from clients
+     - Client (Thread) - Registers messages to Network
+   - Game
+     - Respond to TICK events
+     - Tick Entities in ECS
+     - Process game logic
+   - Ticker
+     - Emit START and TICK events on interval
+   - ECS
+     - Entities
+     - Components
+     - Systems (Todo)
  - Shared
+   - Network State
+     - Records Setters
+     - Patchable
+   - Recordable
+     - Patch Builder - Builds string patch from method name and parameters
+   - Marshal
+     - Serializes and Parses objects
