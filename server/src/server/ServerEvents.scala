@@ -4,7 +4,7 @@ import shared.Events
 
 object EventTag extends Enumeration {
   type EventTag = Value
-  val EVENT_TICK =
+  val EVENT_START, EVENT_TICK =
     Value
 }
 

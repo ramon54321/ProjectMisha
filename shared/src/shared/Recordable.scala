@@ -24,10 +24,16 @@ trait Recordable {
   private val patchQueue = new Queue[String]()
   protected def record(methodName: String, args: Any*): Boolean = {
     if (!isWriter) return false
-    val stringifiedArgs = args.map(Marshal.serialize)
-    val patch = Seq(methodName).concat(stringifiedArgs).mkString("|")
+    val patch = PatchBuilder.build(methodName, args: _*)
     patchQueue.enqueue(patch)
     return true
   }
   def dequeuePatches(): Array[String] = QueueUtils.dequeueToArray(patchQueue)
+}
+
+object PatchBuilder {
+  def build(methodName: String, args: Any*): String = {
+    val stringifiedArgs = args.map(Marshal.serialize)
+    return Seq(methodName).concat(stringifiedArgs).mkString("|")
+  }
 }

@@ -114,6 +114,7 @@ object Game {
 
     // Handle Server Messages
     val networkMessages = Network.dequeueMessages()
+    if (!networkMessages.isEmpty) println(networkMessages.mkString(" "))
     networkMessages.foreach(ClientNetworkState.applyPatch)
 
     // Keyboard Input
