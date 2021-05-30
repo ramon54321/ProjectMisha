@@ -1,7 +1,12 @@
-package server
+package server.game
 
-import server.EventTag._
-import server.ecs._
+import server.network.Network
+import server.events.EventTag.EVENT_START
+import server.events.EventTag.EVENT_TICK
+import server.events.ServerEvents
+import server.networkstate.ServerNetworkState
+import server.ecs.ECS
+import server.ecs.HealthComponent
 
 object Game {
   ServerEvents.on(EVENT_START, () => start())

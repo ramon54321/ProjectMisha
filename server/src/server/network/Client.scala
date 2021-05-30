@@ -1,8 +1,8 @@
-package server
+package server.network
 
 import java.io.{BufferedReader, IOException, InputStreamReader, PrintWriter}
 import java.net.Socket
-import server.ServerNetworkState
+import server.networkstate.ServerNetworkState
 
 class Client(private val socket: Socket) extends Thread {
   private var out: PrintWriter = null

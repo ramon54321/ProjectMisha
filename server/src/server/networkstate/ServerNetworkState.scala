@@ -1,4 +1,4 @@
-package server
+package server.networkstate
 
 import shared.NetworkState
 
