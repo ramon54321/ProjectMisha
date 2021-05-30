@@ -1,4 +1,4 @@
-package client
+package client.graphics
 
 import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW._
@@ -14,7 +14,9 @@ import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
 import scala.util.Using
 import org.joml.Matrix4f
-import EventTag._
+import client.EventTag._
+import client.Constants
+import client.ClientEvents
 import client.game.Game
 
 object Window {

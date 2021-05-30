@@ -1,11 +1,5 @@
 package client.game
 
-import client.ClientEvents
-import client.EventTag._
-import client.graphics._
-import client.Benchmark
-import client.Constants
-import client.Window
 import org.lwjgl.glfw.GLFW._
 import org.joml.Matrix4f
 import org.joml.Vector4f
@@ -13,8 +7,10 @@ import org.joml.Vector2f
 import scala.util.Random
 import scala.collection.mutable.HashMap
 import client.network.Network
-import shared.NetworkState
 import client.ClientNetworkState
+import client.ClientEvents
+import client.EventTag._
+import client.Constants
 
 object Game {
   ClientEvents.on(EVENT_GL_READY, () => glReady())

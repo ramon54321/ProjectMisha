@@ -3,6 +3,7 @@ package client
 import shared.Threading
 import client.network.Network
 import client.game.Game
+import client.graphics.Window
 import scala.collection.mutable.ArrayBuffer
 import shared.NetworkState
 import scala.collection.mutable.HashMap

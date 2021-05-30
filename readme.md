@@ -60,3 +60,26 @@ export DISPLAY=$(grep nameserver /etc/resolv.conf | sed 's/nameserver //'):0
 ```
 
 Mill can now be run normally and it should spawn a window on the host.
+
+## Features
+
+ - Client
+   - Graphics
+     - OpenGL 4 Context
+     - Sprites
+       - Ordered top to bottom, back to front
+       - Static in World - 15,000 on screen - No world limit
+       - Dynamic in World - 1,000 on screen - No world limit
+       - Disable Sprites off screen (Culling) - QuadTree
+     - Text
+       - Updatable
+     - Input
+       - Keyboard
+       - Mouse
+     - Camera
+       - Pan
+   - Events
+   - Network
+   - Game
+ - Server
+ - Shared

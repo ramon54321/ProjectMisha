@@ -16,7 +16,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.Using
 import org.lwjgl.system.MemoryStack
 import client.Benchmark
-import client.Window
+import client.graphics.Window
 import org.lwjgl.BufferUtils
 import org.lwjgl.stb.STBTTFontinfo
 import org.lwjgl.stb.STBTTBakedChar
