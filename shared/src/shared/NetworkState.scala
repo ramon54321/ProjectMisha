@@ -5,7 +5,7 @@ import scala.collection.mutable.ArrayBuffer
 
 /** Due to how Scala boxes types, recorded methods should always use Integer instead of Int in parameters
   */
-abstract class NetworkState extends Recordable {
+abstract class NetworkStateBase extends Recordable {
   private var worldName: String = "Unknown"
   def getWorldName = worldName
   def setWorldName(value: String): Unit = {

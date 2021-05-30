@@ -1,7 +1,7 @@
-package client
+package server.networkstate
 
 import shared.NetworkStateBase
 
 object NetworkState extends NetworkStateBase {
-  asReader()
+  asWriter()
 }

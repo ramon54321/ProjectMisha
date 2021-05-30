@@ -4,7 +4,7 @@ import server.network.Network
 import server.events.EventTag.EVENT_START
 import server.events.EventTag.EVENT_TICK
 import server.events.ServerEvents
-import server.networkstate.ServerNetworkState
+import server.networkstate.NetworkState
 import server.ecs.ECS
 import server.ecs.HealthComponent
 
@@ -13,7 +13,7 @@ object Game {
   ServerEvents.on(EVENT_TICK, () => tick())
 
   private def start() = {
-    ServerNetworkState.setWorldName("Anderson")
+    NetworkState.setWorldName("Anderson")
     createEntity()
   }
 
@@ -24,12 +24,12 @@ object Game {
     ECS.tick()
 
     // Send Network Updates
-    val patches = ServerNetworkState.dequeuePatches()
+    val patches = NetworkState.dequeuePatches()
     patches.foreach(Network.broadcast)
   }
 
   private def createEntity() = {
     val entity = ECS.createEntity().addComponent(new HealthComponent())
-    ServerNetworkState.createEntity(entity.id)
+    NetworkState.createEntity(entity.id)
   }
 }

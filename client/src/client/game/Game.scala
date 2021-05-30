@@ -7,7 +7,7 @@ import org.joml.Vector2f
 import scala.util.Random
 import scala.collection.mutable.HashMap
 import client.network.Network
-import client.ClientNetworkState
+import client.NetworkState
 import client.ClientEvents
 import client.EventTag._
 import client.Constants
@@ -18,7 +18,7 @@ object Game {
   ClientEvents.on(EVENT_GL_UPDATE, () => glUpdate())
   ClientEvents.on(EVENT_TICKER_SECOND, () => tickerSecond())
 
-  ClientNetworkState.Events.on("setWorldName", args => println("Hook: " + args))
+  NetworkState.Events.on("setWorldName", args => println("Hook: " + args))
 
   var projectionMatrix: Matrix4f = null
   var baseBatchRenderer: StaticSpriteBatchRenderer = null
@@ -92,7 +92,7 @@ object Game {
     textBatchRenderers.put(
       "entityCount",
       new TextBatchRenderer(
-        f"Entities: ${ClientNetworkState.getEntities().size}",
+        f"Entities: ${NetworkState.getEntities().size}",
         new Vector2f(
           -Constants.SCREEN_WIDTH / 2 + 16,
           Constants.SCREEN_HEIGHT / 2 - 16 - 24 * 2
@@ -123,7 +123,7 @@ object Game {
     // Handle Server Messages
     val networkMessages = Network.dequeueMessages()
     if (!networkMessages.isEmpty) println(networkMessages.mkString(" "))
-    networkMessages.foreach(ClientNetworkState.applyPatch)
+    networkMessages.foreach(NetworkState.applyPatch)
 
     // Keyboard Input
     if (Window.keyDown(GLFW_KEY_A)) {
@@ -143,7 +143,7 @@ object Game {
     }
 
     // Update UI
-    textBatchRenderers.get("entityCount").map(_.setText(f"Entities: ${ClientNetworkState.getEntities().size}"))
+    textBatchRenderers.get("entityCount").map(_.setText(f"Entities: ${NetworkState.getEntities().size}"))
   }
 
   private def tickerSecond() = {

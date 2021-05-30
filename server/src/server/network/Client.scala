@@ -2,7 +2,7 @@ package server.network
 
 import java.io.{BufferedReader, IOException, InputStreamReader, PrintWriter}
 import java.net.Socket
-import server.networkstate.ServerNetworkState
+import server.networkstate.NetworkState
 
 class Client(private val socket: Socket) extends Thread {
   private var out: PrintWriter = null
@@ -21,7 +21,7 @@ class Client(private val socket: Socket) extends Thread {
         new InputStreamReader(socket.getInputStream())
       )
 
-      ServerNetworkState.getFullStatePatches().foreach(send)
+      NetworkState.getFullStatePatches().foreach(send)
 
       var message = in.readLine()
       while (message != null) {

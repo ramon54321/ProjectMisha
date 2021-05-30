@@ -5,7 +5,6 @@ import client.network.Network
 import client.game.Game
 import client.graphics.Window
 import scala.collection.mutable.ArrayBuffer
-import shared.NetworkState
 import scala.collection.mutable.HashMap
 import java.lang
 
@@ -20,7 +19,7 @@ object Main {
       Benchmark.run(testNames.split(","))
     } else {
       Network.start()
-      ClientNetworkState
+      NetworkState
       Game
       Window
       Threading.registerShutdownHook()
