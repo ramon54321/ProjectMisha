@@ -63,6 +63,8 @@ Mill can now be run normally and it should spawn a window on the host.
 
 ## Features
 
+![Architecture](docs/architecture.png)
+
  - Client
    - Graphics
      - OpenGL 4 Context
