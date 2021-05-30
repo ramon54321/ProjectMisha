@@ -15,6 +15,7 @@ abstract class NetworkState extends Recordable {
 
   private val entities = new HashMap[Int, NetworkEntity]
   def getEntityById(id: Int): Option[NetworkEntity] = entities.get(id)
+  def getEntities(): Iterable[NetworkEntity] = entities.values
   def createEntity(id: Integer): Unit = {
     record("createEntity", id)
     entities.put(id, new NetworkEntity(id))

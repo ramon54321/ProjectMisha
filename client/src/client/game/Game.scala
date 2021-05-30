@@ -93,6 +93,18 @@ object Game {
         18
       )
     )
+    textBatchRenderers.put(
+      "entityCount",
+      new TextBatchRenderer(
+        f"Entities: ${ClientNetworkState.getEntities().size}",
+        new Vector2f(
+          -Constants.SCREEN_WIDTH / 2 + 16,
+          Constants.SCREEN_HEIGHT / 2 - 16 - 24 * 2
+        ),
+        new Vector4f(0.533f, 0.866f, 0.274f, 1.0f),
+        18
+      )
+    )
   }
 
   private def glRender() = {
@@ -133,6 +145,9 @@ object Game {
     if (Window.keyDown(GLFW_KEY_P)) {
       textBatchRenderers.get("fps").map(_.setText("It worked!"))
     }
+
+    // Update UI
+    textBatchRenderers.get("entityCount").map(_.setText(f"Entities: ${ClientNetworkState.getEntities().size}"))
   }
 
   private def tickerSecond() = {
