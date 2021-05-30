@@ -6,11 +6,21 @@ import org.joml.Vector4f
 import org.joml.Vector2f
 import scala.util.Random
 import scala.collection.mutable.HashMap
-import client.network.Network
-import client.NetworkState
-import client.ClientEvents
-import client.EventTag._
+
 import client.Constants
+import client.network.Network
+import client.networkstate.NetworkState
+import client.events.ClientEvents
+import client.events.EventTag.EVENT_GL_READY
+import client.events.EventTag.EVENT_GL_RENDER
+import client.events.EventTag.EVENT_GL_UPDATE
+import client.events.EventTag.EVENT_TICKER_SECOND
+import client.graphics.StaticSpriteBatchRenderer
+import client.graphics.DynamicSpriteBatchRenderer
+import client.graphics.TextBatchRenderer
+import client.graphics.StaticSprite
+import client.graphics.Window
+import client.Benchmark
 
 object Game {
   ClientEvents.on(EVENT_GL_READY, () => glReady())

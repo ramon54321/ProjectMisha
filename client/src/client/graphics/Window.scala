@@ -14,9 +14,12 @@ import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
 import scala.util.Using
 import org.joml.Matrix4f
-import client.EventTag._
+import client.events.ClientEvents
+import client.events.EventTag.EVENT_GL_READY
+import client.events.EventTag.EVENT_GL_RENDER
+import client.events.EventTag.EVENT_GL_UPDATE
+import client.events.EventTag.EVENT_TICKER_SECOND
 import client.Constants
-import client.ClientEvents
 import client.game.Game
 
 object Window {

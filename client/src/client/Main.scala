@@ -2,6 +2,7 @@ package client
 
 import shared.Threading
 import client.network.Network
+import client.networkstate.NetworkState
 import client.game.Game
 import client.graphics.Window
 import scala.collection.mutable.ArrayBuffer
