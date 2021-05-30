@@ -15,12 +15,13 @@ import scala.collection.mutable.TreeSet
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Using
 import org.lwjgl.system.MemoryStack
-import client.Benchmark
-import client.graphics.Window
 import org.lwjgl.BufferUtils
 import org.lwjgl.stb.STBTTFontinfo
 import org.lwjgl.stb.STBTTBakedChar
 import org.lwjgl.stb.STBTTAlignedQuad
+
+import client.graphics.Window
+import client.Benchmark
 
 class TextBatchRenderer(
     private var text: String,

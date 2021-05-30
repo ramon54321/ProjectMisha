@@ -1,13 +1,14 @@
 package client
 
 import shared.Threading
-import client.network.Network
-import client.networkstate.NetworkState
-import client.game.Game
-import client.graphics.Window
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import java.lang
+
+import client.game.Game
+import client.network.Network
+import client.networkstate.NetworkState
+import client.graphics.Window
 
 object Main {
   var args: Array[String] = null

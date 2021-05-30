@@ -12,6 +12,7 @@ import scala.collection.mutable.TreeSet
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Using
 import org.lwjgl.system.MemoryStack
+
 import client.Benchmark
 
 class StaticSpriteBatchRenderer(val maxSprites: Int = 512) extends BatchRenderer {
@@ -92,10 +93,6 @@ class StaticSpriteBatchRenderer(val maxSprites: Int = 512) extends BatchRenderer
       GL_RGBA,
       GL_UNSIGNED_BYTE,
       texture.buffer
-      // Array(
-      //   1.0f, 0.0f, 0.0f, 0.9f, 1.0f, 1.0f, 1.0f, 0.9f, 1.0f, 1.0f, 1.0f, 0.9f,
-      //   1.0f, 1.0f, 1.0f, 0.9f
-      // )
     )
 
     // Generate mipmap

@@ -10,7 +10,7 @@ import scala.collection.mutable.HashMap
 import client.Constants
 import client.network.Network
 import client.networkstate.NetworkState
-import client.events.ClientEvents
+import client.events.Events
 import client.events.EventTag.EVENT_GL_READY
 import client.events.EventTag.EVENT_GL_RENDER
 import client.events.EventTag.EVENT_GL_UPDATE
@@ -23,10 +23,10 @@ import client.graphics.Window
 import client.Benchmark
 
 object Game {
-  ClientEvents.on(EVENT_GL_READY, () => glReady())
-  ClientEvents.on(EVENT_GL_RENDER, () => glRender())
-  ClientEvents.on(EVENT_GL_UPDATE, () => glUpdate())
-  ClientEvents.on(EVENT_TICKER_SECOND, () => tickerSecond())
+  Events.on(EVENT_GL_READY, () => glReady())
+  Events.on(EVENT_GL_RENDER, () => glRender())
+  Events.on(EVENT_GL_UPDATE, () => glUpdate())
+  Events.on(EVENT_TICKER_SECOND, () => tickerSecond())
 
   NetworkState.Events.on("setWorldName", args => println("Hook: " + args))
 

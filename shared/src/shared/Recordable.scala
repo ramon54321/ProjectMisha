@@ -4,7 +4,7 @@ import scala.collection.mutable.Queue
 
 trait Recordable {
 
-  object Events extends Events[String] {}
+  object Events extends EventsBase[String] {}
 
   private var isWriter = true
   def asWriter() = isWriter = true

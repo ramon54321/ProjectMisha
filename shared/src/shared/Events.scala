@@ -3,7 +3,7 @@ package shared
 import java.util.HashMap
 import scala.collection.mutable.ListBuffer
 
-abstract class Events[T] {
+abstract class EventsBase[T] {
   private class Listener(val id: Int, val callback: (Seq[Any]) => Unit) {
     def apply(args: Seq[Any]) = {
       callback(args)

@@ -14,13 +14,14 @@ import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
 import scala.util.Using
 import org.joml.Matrix4f
-import client.events.ClientEvents
+
+import client.game.Game
+import client.events.Events
 import client.events.EventTag.EVENT_GL_READY
 import client.events.EventTag.EVENT_GL_RENDER
 import client.events.EventTag.EVENT_GL_UPDATE
 import client.events.EventTag.EVENT_TICKER_SECOND
 import client.Constants
-import client.game.Game
 
 object Window {
   System.out.println(f"Running with LWJGL version ${Version.getVersion} on display ${System.getenv("DISPLAY")}")
@@ -104,7 +105,7 @@ object Window {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
   // Game Layer
-  ClientEvents.emit(EVENT_GL_READY)
+  Events.emit(EVENT_GL_READY)
 
   // Set the clear color
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
@@ -124,7 +125,7 @@ object Window {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     // Emit Render
-    ClientEvents.emit(EVENT_GL_RENDER)
+    Events.emit(EVENT_GL_RENDER)
 
     // Swap the color buffers
     glfwSwapBuffers(window)
@@ -133,7 +134,7 @@ object Window {
     glfwPollEvents()
 
     // Emit Update
-    ClientEvents.emit(EVENT_GL_UPDATE)
+    Events.emit(EVENT_GL_UPDATE)
 
     // Update Frame Times
     val currentFrameTime = System.nanoTime()
@@ -141,7 +142,7 @@ object Window {
     if (currentFrameTime - lastSecondTime > 1000000000) {
       lastSecondTime = currentFrameTime
       lastFrameCount = frameCount
-      ClientEvents.emit(EVENT_TICKER_SECOND)
+      Events.emit(EVENT_TICKER_SECOND)
       println("FPS: " + lastFrameCount)
       frameCount = 0
     }

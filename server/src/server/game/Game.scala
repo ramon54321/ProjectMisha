@@ -3,14 +3,14 @@ package server.game
 import server.network.Network
 import server.events.EventTag.EVENT_START
 import server.events.EventTag.EVENT_TICK
-import server.events.ServerEvents
+import server.events.Events
 import server.networkstate.NetworkState
 import server.ecs.ECS
 import server.ecs.HealthComponent
 
 object Game {
-  ServerEvents.on(EVENT_START, () => start())
-  ServerEvents.on(EVENT_TICK, () => tick())
+  Events.on(EVENT_START, () => start())
+  Events.on(EVENT_TICK, () => tick())
 
   private def start() = {
     NetworkState.setWorldName("Anderson")
