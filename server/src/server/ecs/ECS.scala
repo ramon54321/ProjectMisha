@@ -34,6 +34,7 @@ class Entity(val id: Int) {
     val tag = classTag[T].runtimeClass.getCanonicalName()
     return components.get(tag).asInstanceOf[Option[T]]
   }
+  def getComponents(): Iterable[Component] = components.values
 }
 
 abstract class Component {
@@ -50,4 +51,5 @@ abstract class Component {
     parents.last
   }
   def tick(): Unit = {}
+  def updateNetworkState(): Unit
 }

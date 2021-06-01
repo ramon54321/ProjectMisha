@@ -31,5 +31,6 @@ object Game {
   private def createEntity() = {
     val entity = ECS.createEntity().addComponent(new HealthComponent())
     NetworkState.createEntity(entity.id)
+    entity.getComponents().foreach(_.updateNetworkState())
   }
 }

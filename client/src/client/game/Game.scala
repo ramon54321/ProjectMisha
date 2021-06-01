@@ -158,5 +158,8 @@ object Game {
 
   private def tickerSecond() = {
     textBatchRenderers.get("fps").map(_.setText("FPS: " + Window.fps()))
+
+    val entities = NetworkState.getEntities()
+    entities.foreach(e => println(e))
   }
 }

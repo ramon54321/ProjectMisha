@@ -1,5 +1,7 @@
 package shared
 
+import scala.collection.mutable.HashMap
+
 object Marshal {
   private case class MarshalExceptionUnableToSerialize(obj: Any)
       extends Exception
@@ -13,6 +15,7 @@ object Marshal {
         .setScale(5, BigDecimal.RoundingMode.HALF_UP)
         .toString()
     case x: String => "s" + x.toString()
+    case x: HashMap[_, _] => "m"
     case _: Object => throw MarshalExceptionUnableToSerialize(obj)
   }
 
@@ -23,6 +26,7 @@ object Marshal {
       case i if i == 'i' => value.toInt
       case i if i == 'f' => value.toFloat
       case i if i == 's' => value
+      case i if i == 'h' => "bob"
       case _             => throw MarshalExceptionUnableToParse(str)
     }
   }
