@@ -50,6 +50,7 @@ abstract class Component {
     }
     parents.last
   }
+  val netTag: String = tag.split('.').last.replace("Component", "")
   def tick(): Unit = {}
   def updateNetworkState(): Unit
 }

@@ -21,6 +21,7 @@ import client.graphics.TextBatchRenderer
 import client.graphics.StaticSprite
 import client.graphics.Window
 import client.Benchmark
+import scala.util.Try
 
 object Game {
   Events.on(EVENT_GL_READY, () => glReady())
@@ -153,13 +154,23 @@ object Game {
     }
 
     // Update UI
-    textBatchRenderers.get("entityCount").map(_.setText(f"Entities: ${NetworkState.getEntities().size}"))
+    textBatchRenderers
+      .get("entityCount")
+      .map(_.setText(f"Entities: ${NetworkState.getEntities().size}"))
   }
 
   private def tickerSecond() = {
     textBatchRenderers.get("fps").map(_.setText("FPS: " + Window.fps()))
 
     val entities = NetworkState.getEntities()
-    entities.foreach(e => println(e))
+    entities.foreach(e => println(e.getComponents()))
+
+    for (
+      entity <- Try(entities.last).toOption;
+      component <- entity.getComponent("Health");
+      health <- component.get("Health")
+    ) yield {
+      println(health)
+    }
   }
 }

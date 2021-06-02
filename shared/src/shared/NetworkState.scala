@@ -24,11 +24,11 @@ abstract class NetworkStateBase extends Recordable {
 
   def setComponent(
       entityId: Integer,
-      componentTag: String,
+      netTag: String,
       component: HashMap[String, Any]
   ): Unit = {
-    record("setComponent", entityId, componentTag, component)
-    getEntityById(entityId).map(_.setComponent(componentTag, component))
+    record("setComponent", entityId, netTag, component)
+    getEntityById(entityId).map(_.setComponent(netTag, component))
   }
 
   /** Builds a list of patches to rebuild current state
@@ -40,9 +40,9 @@ abstract class NetworkStateBase extends Recordable {
       patches.addOne(PatchBuilder.build("createEntity", id))
       networkEntity
         .getComponents()
-        .foreachEntry((componentTag, component) => {
+        .foreachEntry((netTag, component) => {
           patches.addOne(
-            PatchBuilder.build("setComponent", id, componentTag, component)
+            PatchBuilder.build("setComponent", id, netTag, component)
           )
         })
     })
@@ -52,13 +52,13 @@ abstract class NetworkStateBase extends Recordable {
 
 class NetworkEntity(val id: Int) {
   private val components = new HashMap[String, HashMap[String, Any]]()
-  def getComponent(componentTag: String): Option[HashMap[String, Any]] =
-    components.get(componentTag)
+  def getComponent(netTag: String): Option[HashMap[String, Any]] =
+    components.get(netTag)
   def getComponents(): HashMap[String, HashMap[String, Any]] = components
-  def setComponent(componentTag: String, map: HashMap[String, Any]): Unit = {
-    components.put(componentTag, map)
+  def setComponent(netTag: String, map: HashMap[String, Any]): Unit = {
+    components.put(netTag, map)
   }
-  def setComponentValue(componentTag: String, key: String, value: Any): Unit =
-    components.get(componentTag).map(_.put(key, value))
+  def setComponentValue(netTag: String, key: String, value: Any): Unit =
+    components.get(netTag).map(_.put(key, value))
   override def toString(): String = components.keys.mkString("\n\t")
 }

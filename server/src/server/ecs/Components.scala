@@ -7,6 +7,6 @@ class HealthComponent extends Component {
   def damage(amount: Int) = println("Damage")
   def updateNetworkState() = {
     println("Setting health component")
-    NetworkState.setComponent(0, tag, HashMap("Health" -> 75))
+    NetworkState.setComponent(0, netTag, HashMap("Health" -> 75))
   }
 }
