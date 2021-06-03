@@ -2,11 +2,10 @@ import scala.collection.mutable.HashMap
 import mill._, scalalib._
 
 trait CommonModule extends ScalaModule {
-  def scalaVersion = "2.13.5"
+  def scalaVersion = "3.0.0"
 }
 
 object client extends CommonModule {
-
   val isMac = System.getProperty("os.name").toLowerCase().contains("mac")
   val customDisplayVariable = System.getenv("DISPLAY")
 

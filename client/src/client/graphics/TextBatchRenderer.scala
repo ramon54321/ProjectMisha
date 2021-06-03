@@ -27,7 +27,7 @@ class TextBatchRenderer(
     private var text: String,
     val position: Vector2fc,
     val color: Vector4fc,
-    val fontHeight: Int
+    val fontHeight: Float
 ) extends BatchRenderer {
   // Length of string
   private val maxChars: Int = 512

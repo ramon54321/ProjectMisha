@@ -40,12 +40,14 @@ object Game {
   var cameraX = 0f
   var cameraY = 0f
 
-  private def glReady() = {
+  private def glReady(): Unit = {
+    val halfWidth = Constants.SCREEN_WIDTH.toFloat / 2
+    val halfHeight = Constants.SCREEN_HEIGHT.toFloat / 2
     projectionMatrix = new Matrix4f().ortho(
-      -Constants.SCREEN_WIDTH / 2,
-      Constants.SCREEN_WIDTH / 2,
-      -Constants.SCREEN_HEIGHT / 2,
-      Constants.SCREEN_HEIGHT / 2,
+      -halfWidth,
+      halfWidth,
+      -halfHeight,
+      halfHeight,
       -1,
       1
     )
@@ -81,11 +83,11 @@ object Game {
       new TextBatchRenderer(
         "---",
         new Vector2f(
-          -Constants.SCREEN_WIDTH / 2 + 16,
-          Constants.SCREEN_HEIGHT / 2 - 16 - 24 * 0
+          -halfWidth + 16,
+          halfHeight - 16 - 24 * 0
         ),
         new Vector4f(0.533f, 0.866f, 0.274f, 1.0f),
-        18
+        18f
       )
     )
     textBatchRenderers.put(
@@ -93,11 +95,11 @@ object Game {
       new TextBatchRenderer(
         Constants.VERSION,
         new Vector2f(
-          -Constants.SCREEN_WIDTH / 2 + 16,
-          Constants.SCREEN_HEIGHT / 2 - 16 - 24 * 1
+          -halfWidth + 16,
+          halfHeight - 16 - 24 * 1
         ),
         new Vector4f(0.533f, 0.866f, 0.274f, 1.0f),
-        18
+        18f
       )
     )
     textBatchRenderers.put(
@@ -105,16 +107,16 @@ object Game {
       new TextBatchRenderer(
         f"Entities: ${NetworkState.getEntities().size}",
         new Vector2f(
-          -Constants.SCREEN_WIDTH / 2 + 16,
-          Constants.SCREEN_HEIGHT / 2 - 16 - 24 * 2
+          -halfWidth + 16,
+          halfHeight - 16 - 24 * 2
         ),
         new Vector4f(0.533f, 0.866f, 0.274f, 1.0f),
-        18
+        18f
       )
     )
   }
 
-  private def glRender() = {
+  private def glRender(): Unit = {
     Benchmark.startTag("baseBatchRendererFlush")
     baseBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
     Benchmark.endTag("baseBatchRendererFlush")
@@ -128,7 +130,7 @@ object Game {
     Benchmark.endTag("textBatchRenderersFlush")
   }
 
-  private def glUpdate() = {
+  private def glUpdate(): Unit = {
     val deltaTime = Window.deltaTime()
 
     // Handle Server Messages
@@ -159,7 +161,7 @@ object Game {
       .map(_.setText(f"Entities: ${NetworkState.getEntities().size}"))
   }
 
-  private def tickerSecond() = {
+  private def tickerSecond(): Unit = {
     textBatchRenderers.get("fps").map(_.setText("FPS: " + Window.fps()))
 
     val entities = NetworkState.getEntities()
