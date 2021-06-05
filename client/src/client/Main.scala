@@ -1,6 +1,6 @@
 package client
 
-import shared.Threading
+import shared.engine.Threading
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import java.lang

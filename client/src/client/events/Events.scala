@@ -1,6 +1,6 @@
 package client.events
 
-import shared.EventsBase
+import shared.engine.EventsBase
 
 sealed trait ClientEvent
 case class EVENT_GL_READY() extends ClientEvent

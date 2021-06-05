@@ -6,6 +6,7 @@ import org.joml.Vector4f
 import org.joml.Vector2f
 import scala.util.Random
 import scala.collection.mutable.HashMap
+import scala.util.Try
 
 import client.Constants
 import client.network.Network
@@ -21,7 +22,6 @@ import client.graphics.TextBatchRenderer
 import client.graphics.StaticSprite
 import client.graphics.Window
 import client.Benchmark
-import scala.util.Try
 
 object Game {
   Events.on[EVENT_GL_READY](_ => glReady())

@@ -3,6 +3,9 @@ package shared
 import scala.collection.mutable.{Queue, HashMap}
 import scala.collection.mutable.ArrayBuffer
 
+import shared.engine.Recordable
+import shared.engine.PatchBuilder
+
 /** Due to how Scala boxes types, recorded methods should always use Integer instead of Int in parameters
   */
 abstract class NetworkStateBase extends Recordable {

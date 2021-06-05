@@ -3,7 +3,8 @@ package client.network
 import java.io.{BufferedReader, IOException, InputStreamReader, PrintWriter}
 import java.net.Socket
 import scala.collection.mutable.Queue
-import shared.QueueUtils
+
+import shared.engine.QueueUtils
 
 object Network extends Thread {
   private var socket: Socket = null

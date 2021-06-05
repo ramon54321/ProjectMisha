@@ -1,6 +1,6 @@
 package server.events
 
-import shared.EventsBase
+import shared.engine.EventsBase
 
 sealed trait ServerEvent
 case class EVENT_START() extends ServerEvent

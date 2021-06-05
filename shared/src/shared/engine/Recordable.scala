@@ -1,4 +1,4 @@
-package shared
+package shared.engine
 
 import scala.collection.mutable.Queue
 

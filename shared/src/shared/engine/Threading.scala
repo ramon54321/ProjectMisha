@@ -1,4 +1,4 @@
-package shared
+package shared.engine
 
 object Threading {
   def registerShutdownHook() = {
