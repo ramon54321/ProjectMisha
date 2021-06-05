@@ -1,4 +1,4 @@
-package server.ecs
+package server.engine
 
 import scala.reflect.{ClassTag, classTag}
 import scala.collection.mutable.{ArrayBuffer, HashMap, HashSet}

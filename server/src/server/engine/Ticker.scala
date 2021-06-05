@@ -1,8 +1,8 @@
-package server.ticker
+package server.engine
 
-import server.events.Events
-import server.events.EVENT_START
-import server.events.EVENT_TICK
+import server.engine.Events
+import server.engine.EVENT_START
+import server.engine.EVENT_TICK
 
 object Ticker extends Thread {
   override def run(): Unit = {

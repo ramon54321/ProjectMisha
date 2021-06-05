@@ -1,12 +1,11 @@
 package server.game
 
-import server.network.Network
-import server.events.EVENT_START
-import server.events.EVENT_TICK
-import server.events.Events
-import server.networkstate.NetworkState
-import server.ecs.ECS
-import server.ecs.HealthComponent
+import server.engine.network.Network
+import server.engine.NetworkState
+import server.engine.ECS
+import server.engine.Events
+import server.engine.EVENT_START
+import server.engine.EVENT_TICK
 
 object Game {
   Events.on[EVENT_START](_ => start())

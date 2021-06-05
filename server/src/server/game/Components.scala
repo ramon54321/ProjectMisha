@@ -1,7 +1,9 @@
-package server.ecs
+package server.game
 
-import server.networkstate.NetworkState
 import scala.collection.mutable.HashMap
+
+import server.engine.Component
+import server.engine.NetworkState
 
 class HealthComponent extends Component {
   def damage(amount: Int) = println("Damage")

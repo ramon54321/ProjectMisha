@@ -1,4 +1,4 @@
-package server.networkstate
+package server.engine
 
 import shared.game.NetworkStateBase
 import shared.engine.RecordableMode
