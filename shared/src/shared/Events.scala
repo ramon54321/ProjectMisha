@@ -1,34 +1,19 @@
 package shared
 
-import java.util.HashMap
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{HashMap, ArrayBuffer}
+import scala.reflect.{ClassTag, classTag}
 
-abstract class EventsBase[T] {
-  private class Listener(val id: Int, val callback: (Seq[Any]) => Unit) {
-    def apply(args: Seq[Any]) = {
-      callback(args)
-    }
+abstract class EventsBase[E] {
+  type Action[T <: E] = (event: T) => Unit
+
+  private val events = new HashMap[String, ArrayBuffer[E => Unit]]()
+
+  def emit[T <: E](event: T): Unit = {
+    events.get(event.getClass.getName).map(actions => actions.foreach(action => action(event)))
   }
 
-  private var id = 0
-  private val events = new HashMap[T, ListBuffer[Listener]]()
-
-  def on(eventTag: T, callback: () => Unit): Unit = {
-    val _callback = (_: Seq[Any]) => callback()
-    on(eventTag, _callback)
-  }
-  def on(eventTag: T, callback: (Seq[Any]) => Unit): Unit = {
-    if (events.get(eventTag) == null) events.put(eventTag, new ListBuffer())
-    events.get(eventTag).addOne(new Listener(id, callback))
-    id += 1
-  }
-
-  def emit(eventTag: T): Unit = {
-    emit(eventTag, Seq())
-  }
-  def emit(eventTag: T, args: Seq[Any]): Unit = {
-    val listeners = events.get(eventTag)
-    if (listeners == null) return
-    listeners.map(listener => listener(args))
+  def on[T <: E : ClassTag](action: T => Unit): Unit = {
+    val key = classTag[T].runtimeClass.getName
+    events.getOrElseUpdate(key, new ArrayBuffer()).addOne(action.asInstanceOf[E => Unit])
   }
 }

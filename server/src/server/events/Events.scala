@@ -2,10 +2,8 @@ package server.events
 
 import shared.EventsBase
 
-object EventTag extends Enumeration {
-  type EventTag = Value
-  val EVENT_START, EVENT_TICK =
-    Value
-}
+sealed trait ServerEvent
+case class EVENT_START() extends ServerEvent
+case class EVENT_TICK() extends ServerEvent
 
-object Events extends EventsBase[EventTag.EventTag] {}
+object Events extends EventsBase[ServerEvent] {}

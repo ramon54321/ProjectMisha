@@ -2,7 +2,6 @@ package shared
 
 import scala.collection.mutable.{Queue, HashMap}
 import scala.collection.mutable.ArrayBuffer
-import scala.reflect.{ClassTag, classTag}
 
 /** Due to how Scala boxes types, recorded methods should always use Integer instead of Int in parameters
   */

@@ -4,7 +4,7 @@ import scala.collection.mutable.Queue
 
 trait Recordable {
 
-  object Events extends EventsBase[String] {}
+  // object Events extends EventsBase[String] {}
 
   private var isWriter = true
   def asWriter() = isWriter = true
@@ -17,7 +17,8 @@ trait Recordable {
     val argTypes = args.map(_.getClass())
     val method = getClass().getMethod(segments(0), argTypes: _*)
     method.invoke(this, args: _*)
-    Events.emit(segments(0), args)
+    // TODO: Replace with new events system
+    // Events.emit(segments(0), args)
     return true
   }
 

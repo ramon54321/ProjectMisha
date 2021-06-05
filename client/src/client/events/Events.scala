@@ -2,10 +2,10 @@ package client.events
 
 import shared.EventsBase
 
-object EventTag extends Enumeration {
-  type EventTag = Value
-  val EVENT_GL_READY, EVENT_GL_RENDER, EVENT_GL_UPDATE, EVENT_TICKER_SECOND =
-    Value
-}
+sealed trait ClientEvent
+case class EVENT_GL_READY() extends ClientEvent
+case class EVENT_GL_RENDER() extends ClientEvent
+case class EVENT_GL_UPDATE() extends ClientEvent
+case class EVENT_TICKER_SECOND() extends ClientEvent
 
-object Events extends EventsBase[EventTag.EventTag] {}
+object Events extends EventsBase[ClientEvent] {}

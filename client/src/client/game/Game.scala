@@ -11,10 +11,10 @@ import client.Constants
 import client.network.Network
 import client.networkstate.NetworkState
 import client.events.Events
-import client.events.EventTag.EVENT_GL_READY
-import client.events.EventTag.EVENT_GL_RENDER
-import client.events.EventTag.EVENT_GL_UPDATE
-import client.events.EventTag.EVENT_TICKER_SECOND
+import client.events.EVENT_GL_READY
+import client.events.EVENT_GL_RENDER
+import client.events.EVENT_GL_UPDATE
+import client.events.EVENT_TICKER_SECOND
 import client.graphics.StaticSpriteBatchRenderer
 import client.graphics.DynamicSpriteBatchRenderer
 import client.graphics.TextBatchRenderer
@@ -24,12 +24,12 @@ import client.Benchmark
 import scala.util.Try
 
 object Game {
-  Events.on(EVENT_GL_READY, () => glReady())
-  Events.on(EVENT_GL_RENDER, () => glRender())
-  Events.on(EVENT_GL_UPDATE, () => glUpdate())
-  Events.on(EVENT_TICKER_SECOND, () => tickerSecond())
+  Events.on[EVENT_GL_READY](_ => glReady())
+  Events.on[EVENT_GL_RENDER](_ => glRender())
+  Events.on[EVENT_GL_UPDATE](_ => glUpdate())
+  Events.on[EVENT_TICKER_SECOND](_ => tickerSecond())
 
-  NetworkState.Events.on("setWorldName", args => println("Hook: " + args))
+  // NetworkState.Events.on("setWorldName", args => println("Hook: " + args))
 
   var projectionMatrix: Matrix4f = null
   var baseBatchRenderer: StaticSpriteBatchRenderer = null
