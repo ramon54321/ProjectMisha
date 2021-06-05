@@ -6,12 +6,14 @@ import server.engine.ECS
 import server.engine.Events
 import server.engine.EVENT_START
 import server.engine.EVENT_TICK
+import server.game.world.WorldGenerator
 
 object Game {
   Events.on[EVENT_START](_ => start())
   Events.on[EVENT_TICK](_ => tick())
 
   private def start() = {
+    WorldGenerator.generate()
     NetworkState.setWorldName("Anderson")
     createEntity()
   }

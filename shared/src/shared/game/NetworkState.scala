@@ -34,6 +34,14 @@ abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
     getEntityById(entityId).map(_.setComponent(netTag, component))
   }
 
+  private val fixtures = new HashMap[Int, NetworkFixture]
+  def getFixtureById(id: Int): Option[NetworkFixture] = fixtures.get(id)
+  def getFixtures(): Iterable[NetworkFixture] = fixtures.values
+  def createFixture(id: Integer): Unit = {
+    record("createFixture", id)
+    fixtures.put(id, NetworkFixture(id))
+  }
+
   /** Builds a list of patches to rebuild current state
     */
   override def getRebuildPatches(): Array[String] = {
@@ -48,6 +56,9 @@ abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
             PatchBuilder.build("setComponent", id, netTag, component)
           )
         })
+    })
+    fixtures.foreachEntry((id, networkFixture) => {
+      patches.addOne(PatchBuilder.build("createFixture", id))
     })
     return patches.toArray
   }
@@ -65,3 +76,5 @@ class NetworkEntity(val id: Int) {
     components.get(netTag).map(_.put(key, value))
   override def toString(): String = components.keys.mkString("\n\t")
 }
+
+case class NetworkFixture(val id: Int)

@@ -2,6 +2,7 @@ package server.engine
 
 import scala.reflect.{ClassTag, classTag}
 import scala.collection.mutable.{ArrayBuffer, HashMap, HashSet}
+import shared.engine.IdUtils
 
 object ECS {
   def tick() = {
@@ -10,10 +11,8 @@ object ECS {
     })
   }
 
-  private var idCounter = 0
   def createEntity(): Entity = {
-    val entity = new Entity(idCounter)
-    idCounter += 1
+    val entity = new Entity(IdUtils.generateId())
     return entity
   }
   private val components = new HashMap[String, HashSet[Component]]()

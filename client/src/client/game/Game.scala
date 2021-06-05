@@ -167,6 +167,9 @@ object Game {
     val entities = NetworkState.getEntities()
     entities.foreach(e => println(e.getComponents()))
 
+    val fixtures = NetworkState.getFixtures()
+    fixtures.foreach(f => println(f))
+
     for (
       entity <- Try(entities.last).toOption;
       component <- entity.getComponent("Health");
