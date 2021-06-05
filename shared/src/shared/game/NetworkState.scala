@@ -4,11 +4,12 @@ import scala.collection.mutable.{Queue, HashMap}
 import scala.collection.mutable.ArrayBuffer
 
 import shared.engine.Recordable
+import shared.engine.RecordableMode
 import shared.engine.PatchBuilder
 
 /** Due to how Scala boxes types, recorded methods should always use Integer instead of Int in parameters
   */
-abstract class NetworkStateBase extends Recordable {
+abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
   private var worldName: String = "Unknown"
   def getWorldName = worldName
   def setWorldName(value: String): Unit = {

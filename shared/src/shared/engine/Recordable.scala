@@ -2,18 +2,17 @@ package shared.engine
 
 import scala.collection.mutable.Queue
 
-trait Recordable {
+enum RecordableMode:
+  case Writer, Reader
+
+trait Recordable(val mode: RecordableMode) {
 
   // object Events extends EventsBase[String] {}
-
-  private var isWriter = true
-  def asWriter() = isWriter = true
-  def asReader() = isWriter = false
 
   def getRebuildPatches(): Array[String]
 
   def applyPatch(patch: String): Boolean = {
-    if (isWriter) return false
+    if (mode == RecordableMode.Writer) return false
     val segments = patch.split('|')
     val args = segments.tail.map(Marshal.parse)
     val argTypes = args.map(_.getClass())
@@ -26,7 +25,7 @@ trait Recordable {
 
   private val patchQueue = new Queue[String]()
   protected def record(methodName: String, args: Any*): Boolean = {
-    if (!isWriter) return false
+    if (mode == RecordableMode.Reader) return false
     val patch = PatchBuilder.build(methodName, args: _*)
     patchQueue.enqueue(patch)
     return true
