@@ -1,4 +1,4 @@
-package client.graphics
+package client.engine.graphics
 
 import org.lwjgl.opengl.GL11._
 import org.lwjgl.opengl.GL12._
@@ -13,9 +13,9 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.Using
 import org.lwjgl.system.MemoryStack
 
-import client.Benchmark
+import client.engine.Benchmark
 
-class StaticSpriteBatchRenderer(val maxSprites: Int = 512) extends BatchRenderer {
+class DynamicSpriteBatchRenderer(val maxSprites: Int = 512) extends BatchRenderer {
   // Keep track of sprites in this batch
   private val sprites = new ArrayBuffer[StaticSprite]()
 
@@ -80,19 +80,20 @@ class StaticSpriteBatchRenderer(val maxSprites: Int = 512) extends BatchRenderer
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 
-    val texture = Textures.get("empty.png")
-
     // Send texture data to GPU
     glTexImage2D(
       GL_TEXTURE_2D,
       0,
       GL_RGBA,
-      texture.width,
-      texture.height,
+      2,
+      2,
       0,
       GL_RGBA,
-      GL_UNSIGNED_BYTE,
-      texture.buffer
+      GL_FLOAT,
+      Array(
+        1.0f, 0.0f, 0.0f, 0.9f, 1.0f, 1.0f, 1.0f, 0.9f, 1.0f, 1.0f, 1.0f, 0.9f,
+        1.0f, 1.0f, 1.0f, 0.9f
+      )
     )
 
     // Generate mipmap
@@ -256,9 +257,10 @@ class StaticSpriteBatchRenderer(val maxSprites: Int = 512) extends BatchRenderer
   }
   def flush(projectionMatrix: Matrix4fc, cameraX: Float, cameraY: Float) = {
     // Update buffers with sprites' data if needed
-    Benchmark.startTag("staticBatchRendererUpdateBuffers")
-    if (isBuffersOutdated) updateBuffers()
-    Benchmark.endTag("staticBatchRendererUpdateBuffers")
+    Benchmark.startTag("dynamicBatchRendererUpdateBuffers")
+    // if (isBuffersOutdated) updateBuffers()
+    updateBuffers()
+    Benchmark.endTag("dynamicBatchRendererUpdateBuffers")
 
     // Use batch's shader program
     glUseProgram(shaderProgram)
@@ -286,8 +288,8 @@ class StaticSpriteBatchRenderer(val maxSprites: Int = 512) extends BatchRenderer
     glBindTexture(GL_TEXTURE_2D, textureHandle)
 
     // Submit draw call to GPU
-    Benchmark.startTag("staticBatchRendererDrawElements")
+    Benchmark.startTag("dynamicBatchRendererDrawElements")
     glDrawElements(GL_TRIANGLES, 6 * sprites.size, GL_UNSIGNED_INT, 0)
-    Benchmark.endTag("staticBatchRendererDrawElements")
+    Benchmark.endTag("dynamicBatchRendererDrawElements")
   }
 }

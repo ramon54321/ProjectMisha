@@ -1,4 +1,4 @@
-package client.graphics
+package client.engine.graphics
 
 import org.joml.Matrix4fc
 

@@ -1,14 +1,15 @@
 package client
 
-import shared.engine.Threading
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import java.lang
 
 import client.game.Game
-import client.network.Network
-import client.networkstate.NetworkState
-import client.graphics.Window
+import client.engine.graphics.Window
+import client.engine.NetworkState
+import client.engine.Network
+import client.engine.Benchmark
+import shared.engine.Threading
 
 object Main {
   var args: Array[String] = null

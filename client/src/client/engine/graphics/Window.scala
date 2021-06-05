@@ -1,4 +1,4 @@
-package client.graphics
+package client.engine.graphics
 
 import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW._
@@ -15,12 +15,11 @@ import org.lwjgl.system.MemoryUtil.NULL
 import scala.util.Using
 import org.joml.Matrix4f
 
-import client.game.Game
-import client.events.Events
-import client.events.EVENT_GL_READY
-import client.events.EVENT_GL_RENDER
-import client.events.EVENT_GL_UPDATE
-import client.events.EVENT_TICKER_SECOND
+import client.engine.Events
+import client.engine.EVENT_GL_READY
+import client.engine.EVENT_GL_RENDER
+import client.engine.EVENT_GL_UPDATE
+import client.engine.EVENT_TICKER_SECOND
 import client.Constants
 
 object Window {

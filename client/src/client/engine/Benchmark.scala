@@ -1,10 +1,12 @@
-package client
+package client.engine
 
 import scala.util.Random
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Sorting
 import org.joml.Matrix4f
 import scala.collection.mutable.HashMap
+
+import client.Main
 
 object Benchmark {
 

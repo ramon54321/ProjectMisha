@@ -9,19 +9,19 @@ import scala.collection.mutable.HashMap
 import scala.util.Try
 
 import client.Constants
-import client.network.Network
-import client.networkstate.NetworkState
-import client.events.Events
-import client.events.EVENT_GL_READY
-import client.events.EVENT_GL_RENDER
-import client.events.EVENT_GL_UPDATE
-import client.events.EVENT_TICKER_SECOND
-import client.graphics.StaticSpriteBatchRenderer
-import client.graphics.DynamicSpriteBatchRenderer
-import client.graphics.TextBatchRenderer
-import client.graphics.StaticSprite
-import client.graphics.Window
-import client.Benchmark
+import client.engine.Network
+import client.engine.NetworkState
+import client.engine.Events
+import client.engine.EVENT_GL_READY
+import client.engine.EVENT_GL_RENDER
+import client.engine.EVENT_GL_UPDATE
+import client.engine.EVENT_TICKER_SECOND
+import client.engine.Benchmark
+import client.engine.graphics.StaticSpriteBatchRenderer
+import client.engine.graphics.DynamicSpriteBatchRenderer
+import client.engine.graphics.TextBatchRenderer
+import client.engine.graphics.StaticSprite
+import client.engine.graphics.Window
 
 object Game {
   Events.on[EVENT_GL_READY](_ => glReady())

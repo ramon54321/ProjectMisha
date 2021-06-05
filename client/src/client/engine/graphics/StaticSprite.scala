@@ -1,4 +1,4 @@
-package client.graphics
+package client.engine.graphics
 
 class StaticSprite(
     val id: Int,
