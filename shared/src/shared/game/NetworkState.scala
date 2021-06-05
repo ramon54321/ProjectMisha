@@ -1,4 +1,4 @@
-package shared
+package shared.game
 
 import scala.collection.mutable.{Queue, HashMap}
 import scala.collection.mutable.ArrayBuffer

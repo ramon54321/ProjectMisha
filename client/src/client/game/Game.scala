@@ -66,7 +66,7 @@ object Game {
     }
 
     noidBatchRenderer = new DynamicSpriteBatchRenderer(8192)
-    for (i <- 0 until 4096) {
+    for (i <- 0 until 0) {
       noidBatchRenderer.addSprite(
         new StaticSprite(
           i,
