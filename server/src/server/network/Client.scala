@@ -21,7 +21,7 @@ class Client(private val socket: Socket) extends Thread {
         new InputStreamReader(socket.getInputStream())
       )
 
-      NetworkState.getFullStatePatches().foreach(send)
+      NetworkState.getRebuildPatches().foreach(send)
 
       var message = in.readLine()
       while (message != null) {

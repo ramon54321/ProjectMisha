@@ -10,6 +10,8 @@ trait Recordable {
   def asWriter() = isWriter = true
   def asReader() = isWriter = false
 
+  def getRebuildPatches(): Array[String]
+
   def applyPatch(patch: String): Boolean = {
     if (isWriter) return false
     val segments = patch.split('|')

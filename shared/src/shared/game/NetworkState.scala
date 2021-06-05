@@ -35,7 +35,7 @@ abstract class NetworkStateBase extends Recordable {
 
   /** Builds a list of patches to rebuild current state
     */
-  def getFullStatePatches(): Array[String] = {
+  override def getRebuildPatches(): Array[String] = {
     val patches = new ArrayBuffer[String]()
     patches.addOne(PatchBuilder.build("setWorldName", worldName))
     entities.foreachEntry((id, networkEntity) => {
