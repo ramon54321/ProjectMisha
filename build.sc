@@ -33,6 +33,10 @@ object client extends CommonModule {
 
 object server extends CommonModule {
   def moduleDeps = Seq(shared)
+
+  def ivyDeps = Agg(
+    ivy"org.joml:joml:1.10.1"
+  )
 }
 
 object shared extends CommonModule {}
