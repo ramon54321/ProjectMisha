@@ -22,6 +22,9 @@ import client.engine.graphics.DynamicSpriteBatchRenderer
 import client.engine.graphics.TextBatchRenderer
 import client.engine.graphics.StaticSprite
 import client.engine.graphics.Window
+import client.engine.graphics.Textures
+import client.engine.graphics.SpriteInfo
+import client.engine.graphics.SpriteSheet
 
 object Game {
   Events.on[EVENT_GL_READY](_ => glReady())
@@ -36,6 +39,14 @@ object Game {
   var noidBatchRenderer: DynamicSpriteBatchRenderer = null
 
   private val textBatchRenderers = new HashMap[String, TextBatchRenderer]()
+
+  private val spriteSheet = new SpriteSheet(
+    Textures.get("grad.png"),
+    scala.collection.immutable.HashMap(
+      "greentunnel" -> SpriteInfo(0.0f, 0.5f, 0.5f, 1.0f, 32, 32),
+      "longblue" -> SpriteInfo(0.5f, 0.0f, 1.0f, 1.0f, 32, 64)
+    )
+  )
 
   var cameraX = 0f
   var cameraY = 0f
@@ -52,28 +63,31 @@ object Game {
       1
     )
 
-    baseBatchRenderer = new StaticSpriteBatchRenderer(8192)
+    baseBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 8192)
     for (i <- 0 until 2) {
       baseBatchRenderer.addSprite(
         new StaticSprite(
           i,
           -600 + Random.nextFloat() * 1200,
           -400 + Random.nextFloat() * 800,
-          128,
-          128
+          Random.nextFloat() * org.joml.Math.PI.toFloat * 2,
+          spriteSheet,
+          "greentunnel"
         )
       )
     }
 
-    noidBatchRenderer = new DynamicSpriteBatchRenderer(8192)
-    for (i <- 0 until 0) {
+    noidBatchRenderer =
+      new DynamicSpriteBatchRenderer(spriteSheet.texture, 8192)
+    for (i <- 0 until 128) {
       noidBatchRenderer.addSprite(
         new StaticSprite(
           i,
           -600 + Random.nextFloat() * 1200,
           -400 + Random.nextFloat() * 800,
-          32,
-          32
+          Random.nextFloat() * org.joml.Math.PI.toFloat * 2,
+          spriteSheet,
+          "longblue"
         )
       )
     }

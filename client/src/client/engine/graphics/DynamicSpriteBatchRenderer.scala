@@ -15,7 +15,7 @@ import org.lwjgl.system.MemoryStack
 
 import client.engine.Benchmark
 
-class DynamicSpriteBatchRenderer(val maxSprites: Int = 512) extends BatchRenderer {
+class DynamicSpriteBatchRenderer(val texture: Texture, val maxSprites: Int = 512) extends BatchRenderer {
   // Keep track of sprites in this batch
   private val sprites = new ArrayBuffer[StaticSprite]()
 
@@ -85,15 +85,12 @@ class DynamicSpriteBatchRenderer(val maxSprites: Int = 512) extends BatchRendere
       GL_TEXTURE_2D,
       0,
       GL_RGBA,
-      2,
-      2,
+      texture.width,
+      texture.height,
       0,
       GL_RGBA,
-      GL_FLOAT,
-      Array(
-        1.0f, 0.0f, 0.0f, 0.9f, 1.0f, 1.0f, 1.0f, 0.9f, 1.0f, 1.0f, 1.0f, 0.9f,
-        1.0f, 1.0f, 1.0f, 0.9f
-      )
+      GL_UNSIGNED_BYTE,
+      texture.buffer
     )
 
     // Generate mipmap
