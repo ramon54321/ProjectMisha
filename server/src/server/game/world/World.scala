@@ -2,9 +2,8 @@ package server.game.world
 
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.ArrayBuffer
-import org.joml.Vector2ic
 
-import shared.engine.IdUtils
+import server.engine.NetworkState
 
 object World {
   val collisionGrid = new Grid[Boolean]()
@@ -12,11 +11,15 @@ object World {
 
   val fixtures = new HashMap[Int, Fixture]()
   def addFixture(fixture: Fixture): Unit = {
-    val x = fixture.position.x
-    val y = fixture.position.y
+    // Add to World
     fixtures.put(fixture.id, fixture)
-    fixtureGrid.getCellElseUpdate(x, y, new ArrayBuffer()).addOne(fixture)
-    updateCollisionGrid(x, y)
+    fixtureGrid
+      .getCellElseUpdate(fixture.x, fixture.y, new ArrayBuffer())
+      .addOne(fixture)
+    updateCollisionGrid(fixture.x, fixture.y)
+
+    // Add to Network
+    NetworkState.createFixture(fixture.id, fixture.tag, fixture.x, fixture.y)
   }
 
   private def updateCollisionGrid(x: Int, y: Int): Unit = {
@@ -28,8 +31,3 @@ object World {
     }
   }
 }
-
-abstract class Fixture(val id: Int, val position: Vector2ic, val isSolid: Boolean) {
-  val tag: String = getClass().getCanonicalName()
-}
-case class FixtureSmallGrass(_id: Int, _position: Vector2ic) extends Fixture(_id, _position, isSolid = false)

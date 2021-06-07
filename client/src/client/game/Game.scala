@@ -114,6 +114,18 @@ object Game {
         18f
       )
     )
+    textBatchRenderers.put(
+      "fixturesCount",
+      new TextBatchRenderer(
+        f"Fixtures: ${NetworkState.getFixtures().size}",
+        new Vector2f(
+          -halfWidth + 16,
+          halfHeight - 16 - 24 * 3
+        ),
+        new Vector4f(0.533f, 0.866f, 0.274f, 1.0f),
+        18f
+      )
+    )
   }
 
   private def glRender(): Unit = {
@@ -159,6 +171,9 @@ object Game {
     textBatchRenderers
       .get("entityCount")
       .map(_.setText(f"Entities: ${NetworkState.getEntities().size}"))
+    textBatchRenderers
+      .get("fixturesCount")
+      .map(_.setText(f"Fixtures: ${NetworkState.getFixtures().size}"))
   }
 
   private def tickerSecond(): Unit = {

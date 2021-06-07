@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "./client/src/client",
+			"name": "Client"
+		},
+		{
+			"path": "./server/src/server",
+			"name": "Server"
+		},
+		{
+			"path": "./shared/src/shared",
+			"name": "Shared"
+		}
+	],
+	"settings": {
+		"files.watcherExclude": {
+			"**/target": true
+		}
+	}
+}
