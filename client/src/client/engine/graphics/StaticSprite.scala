@@ -12,9 +12,9 @@ class StaticSprite(
     val spriteName: String
 ) {
   // Build info from spritesheet
-  val spriteInfo = spriteSheet.meta.get(spriteName).get
-  val width = spriteInfo.width
-  val height = spriteInfo.height
+  val rect = spriteSheet.meta.get(spriteName).get
+  val width = rect.width
+  val height = rect.height
 
   // Create local copy of positions scaled to the local size of the sprite
   private val positions = Sprite.positions.clone()
@@ -43,15 +43,16 @@ class StaticSprite(
   def getPositions(): Array[Float] = this.positions
   def getColors(): Array[Float] = Sprite.colors
   def getUvs(): Array[Float] = {
+    val uvs = spriteSheet.getUVFromRect(rect)
     return Array[Float](
-      spriteInfo.x0,
-      1 - spriteInfo.y0,
-      spriteInfo.x1,
-      1 - spriteInfo.y0,
-      spriteInfo.x0,
-      1 - spriteInfo.y1,
-      spriteInfo.x1,
-      1 - spriteInfo.y1
+      uvs.x0,
+      1 - uvs.y0,
+      uvs.x1,
+      1 - uvs.y0,
+      uvs.x0,
+      1 - uvs.y1,
+      uvs.x1,
+      1 - uvs.y1
     )
   }
   def getIndexes(): Array[Int] = Sprite.indexes

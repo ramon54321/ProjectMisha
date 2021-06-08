@@ -23,7 +23,7 @@ import client.engine.graphics.TextBatchRenderer
 import client.engine.graphics.StaticSprite
 import client.engine.graphics.Window
 import client.engine.graphics.Textures
-import client.engine.graphics.SpriteInfo
+import client.engine.graphics.Rect
 import client.engine.graphics.SpriteSheet
 
 object Game {
@@ -41,10 +41,9 @@ object Game {
   private val textBatchRenderers = new HashMap[String, TextBatchRenderer]()
 
   private val spriteSheet = new SpriteSheet(
-    Textures.get("grad.png"),
+    Textures.get("world.png"),
     scala.collection.immutable.HashMap(
-      "greentunnel" -> SpriteInfo(0.0f, 0.5f, 0.5f, 1.0f, 32, 32),
-      "longblue" -> SpriteInfo(0.5f, 0.0f, 1.0f, 1.0f, 32, 64)
+      "patch1" -> Rect(0, 0, 128, 128)
     )
   )
 
@@ -64,7 +63,7 @@ object Game {
     )
 
     baseBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 8192)
-    for (i <- 0 until 2) {
+    for (i <- 0 until 128) {
       baseBatchRenderer.addSprite(
         new StaticSprite(
           i,
@@ -72,7 +71,7 @@ object Game {
           -400 + Random.nextFloat() * 800,
           Random.nextFloat() * org.joml.Math.PI.toFloat * 2,
           spriteSheet,
-          "greentunnel"
+          "patch1"
         )
       )
     }
@@ -87,7 +86,7 @@ object Game {
           -400 + Random.nextFloat() * 800,
           Random.nextFloat() * org.joml.Math.PI.toFloat * 2,
           spriteSheet,
-          "longblue"
+          "patch1"
         )
       )
     }
