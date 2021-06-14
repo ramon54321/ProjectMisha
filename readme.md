@@ -5,6 +5,12 @@
  - Scala
  - Mill
  - Node
+ - zx
+
+### General
+```
+npm install -g zx
+```
 
 ### MacOS
 ```
