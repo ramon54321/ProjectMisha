@@ -6,9 +6,3 @@
 .metals
 .vscode
 out
-
-# Art
-*.psd
-
-# Large Resources
-world.png
