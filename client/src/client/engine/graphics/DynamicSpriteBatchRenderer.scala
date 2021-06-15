@@ -150,6 +150,9 @@ class DynamicSpriteBatchRenderer(
     // Link shader program
     glLinkProgram(shaderProgram)
 
+    // Bind VAO Before Validation (Mac Specific)
+    glBindVertexArray(vao)
+
     // Validate shader program
     glValidateProgram(shaderProgram)
     Validate.program(shaderProgram)
@@ -175,16 +178,19 @@ class DynamicSpriteBatchRenderer(
     )
 
     // Create VAO and setup Vertex Attributes
+    val attribLocationPosition = glGetAttribLocation(shaderProgram, "vertexPosition")
+    val attribLocationColor = glGetAttribLocation(shaderProgram, "vertexColor")
+    val attribLocationUvs = glGetAttribLocation(shaderProgram, "vertexUvs")
     glBindVertexArray(vao)
     glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
-    glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, NULL)
+    glVertexAttribPointer(attribLocationPosition, 2, GL_FLOAT, false, 0, NULL)
     glBindBuffer(GL_ARRAY_BUFFER, vboColors)
-    glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, NULL)
+    glVertexAttribPointer(attribLocationColor, 3, GL_FLOAT, false, 0, NULL)
     glBindBuffer(GL_ARRAY_BUFFER, vboUvs)
-    glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, NULL)
-    glEnableVertexAttribArray(0)
-    glEnableVertexAttribArray(1)
-    glEnableVertexAttribArray(2)
+    glVertexAttribPointer(attribLocationUvs, 2, GL_FLOAT, false, 0, NULL)
+    glEnableVertexAttribArray(attribLocationPosition)
+    glEnableVertexAttribArray(attribLocationColor)
+    glEnableVertexAttribArray(attribLocationUvs)
   }
   private def sendBuffers(
       positions: Array[Float],
@@ -286,6 +292,7 @@ class DynamicSpriteBatchRenderer(
 
     // Use batch's texture
     glBindTexture(GL_TEXTURE_2D, textureHandle)
+    glUniform1i(uniformMainTexture, 0)
 
     // Submit draw call to GPU
     Benchmark.startTag("dynamicBatchRendererDrawElements")
