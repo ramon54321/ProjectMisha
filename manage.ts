@@ -12,15 +12,15 @@ class DataSource {
   
   async getObjectKeys(): Promise<string[]> {
     const response = await this.client.listObjects({
-      Bucket: this.Bucket
+      Bucket: this.Bucket,
     })
     return response.Contents?.map(entry => entry.Key!) || []
   }
   
-  async getObjectStreamByKey(Key: string): Promise<Stream> {
+  async getObjectStreamByKey(key: string): Promise<Stream> {
     const response = await this.client.getObject({
       Bucket: this.Bucket,
-      Key,
+      Key: key,
     })
     return response.Body as Stream
   }
@@ -40,7 +40,7 @@ if (action) action()
 async function pull() {
   if(!existsSync(RESOURCES_PATH)) mkdirSync(RESOURCES_PATH)
   const keys = await dataSource.getObjectKeys()
-  keys.forEach(async key => {
+  keys.filter(key => !key.endsWith("/")).forEach(async key => {
     const path = `${RESOURCES_PATH}/${key}`
     console.log(`Writing to ${path}`)
     shell.mkdir('-p', dirname(path))
