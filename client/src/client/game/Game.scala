@@ -62,17 +62,18 @@ object Game {
 
     debugBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 4)
     debugBatchRenderer.addSprite(
-      new StaticSprite(0, 0, 0, 0, spriteSheet, "empty.png")
+      new StaticSprite(0, 0, 0, 0, 1, spriteSheet, "patch1.png")
     )
 
     baseBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 8192)
-    for (i <- 0 until 128) {
+    for (i <- 0 until 64) {
       baseBatchRenderer.addSprite(
         new StaticSprite(
           i,
           -600 + Random.nextFloat() * 1200,
           -400 + Random.nextFloat() * 800,
           Random.nextFloat() * org.joml.Math.PI.toFloat * 2,
+          1,
           spriteSheet,
           "patch1.png"
         )
@@ -81,13 +82,14 @@ object Game {
 
     noidBatchRenderer =
       new DynamicSpriteBatchRenderer(spriteSheet.texture, 8192)
-    for (i <- 0 until 128) {
+    for (i <- 0 until 64) {
       noidBatchRenderer.addSprite(
         new StaticSprite(
           i,
           -600 + Random.nextFloat() * 1200,
           -400 + Random.nextFloat() * 800,
           Random.nextFloat() * org.joml.Math.PI.toFloat * 2,
+          1,
           spriteSheet,
           "empty.png"
         )

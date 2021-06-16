@@ -8,6 +8,7 @@ class StaticSprite(
     val x: Float,
     val y: Float,
     val r: Float,
+    val s: Float,
     val spriteSheet: SpriteSheet,
     val spriteName: String
 ) {
@@ -22,22 +23,22 @@ class StaticSprite(
   // Scale Positions
   for (i <- 0 until 8) {
     if (i % 2 == 0) {
-      positions(i) *= width
+      positions(i) *= width * s
     } else {
-      positions(i) *= height
+      positions(i) *= height * s
     }
   }
 
   // Rotate Positions
-  private val s = Math.sin(-r)
-  private val c = Math.cos(-r)
+  private val sin = Math.sin(-r)
+  private val cos = Math.cos(-r)
   for (i <- 0 until 4) {
     val ix = i * 2
     val iy = ix + 1
     val x = positions(ix)
     val y = positions(iy)
-    positions(ix) = x * c - y * s
-    positions(iy) = x * s + y * c
+    positions(ix) = x * cos - y * sin
+    positions(iy) = x * sin + y * cos
   }
 
   def getPositions(): Array[Float] = this.positions
