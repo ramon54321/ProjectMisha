@@ -4,6 +4,11 @@ object WorldGenerator {
   def generate(): Unit = {
     println("Generating World")
 
-    World.addFixture(FixtureSmallGrass(0, 0))
+    for {
+      x <- -25 until 25
+      y <- -15 until 15
+    } yield {
+      World.addFixture(FixtureSmallGrass(x, y))
+    }
   }
 }

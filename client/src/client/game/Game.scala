@@ -25,13 +25,15 @@ import client.engine.graphics.Window
 import client.engine.graphics.Textures
 import client.engine.graphics.SpriteSheet
 
+import shared.game.NetworkEvents
+import shared.game.NETWORK_EVENT_CREATE_FIXTURE
+import shared.engine.IdUtils
+
 object Game {
   Events.on[EVENT_GL_READY](_ => glReady())
   Events.on[EVENT_GL_RENDER](_ => glRender())
   Events.on[EVENT_GL_UPDATE](_ => glUpdate())
   Events.on[EVENT_TICKER_SECOND](_ => tickerSecond())
-
-  // NetworkState.Events.on("setWorldName", args => println("Hook: " + args))
 
   var projectionMatrix: Matrix4f = null
   var debugBatchRenderer: StaticSpriteBatchRenderer = null
@@ -62,23 +64,23 @@ object Game {
 
     debugBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 4)
     debugBatchRenderer.addSprite(
-      new StaticSprite(0, 0, 0, 0, 1, spriteSheet, "patch1.png")
+      new StaticSprite(0, 0, 0, 0, 1, spriteSheet, "empty.png")
     )
 
     baseBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 8192)
-    for (i <- 0 until 64) {
+    NetworkEvents.on[NETWORK_EVENT_CREATE_FIXTURE](e => {
       baseBatchRenderer.addSprite(
         new StaticSprite(
-          i,
-          -600 + Random.nextFloat() * 1200,
-          -400 + Random.nextFloat() * 800,
+          IdUtils.generateId(),
+          e.x * 64f,
+          e.y * 64f,
           Random.nextFloat() * org.joml.Math.PI.toFloat * 2,
           1,
           spriteSheet,
           "patch1.png"
         )
       )
-    }
+    })
 
     noidBatchRenderer =
       new DynamicSpriteBatchRenderer(spriteSheet.texture, 8192)
@@ -147,9 +149,6 @@ object Game {
   }
 
   private def glRender(): Unit = {
-    Benchmark.startTag("debugBatchRendererFlush")
-    debugBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
-    Benchmark.endTag("debugBatchRendererFlush")
     Benchmark.startTag("baseBatchRendererFlush")
     baseBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
     Benchmark.endTag("baseBatchRendererFlush")
@@ -158,9 +157,12 @@ object Game {
     Benchmark.endTag("noidBatchRendererFlush")
     Benchmark.startTag("textBatchRenderersFlush")
     textBatchRenderers.valuesIterator.foreach(textBatchRenderer =>
-      textBatchRenderer.flush(projectionMatrix, 0, 0)
+    textBatchRenderer.flush(projectionMatrix, 0, 0)
     )
     Benchmark.endTag("textBatchRenderersFlush")
+    Benchmark.startTag("debugBatchRendererFlush")
+    debugBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
+    Benchmark.endTag("debugBatchRendererFlush")
   }
 
   private def glUpdate(): Unit = {
@@ -201,10 +203,7 @@ object Game {
     textBatchRenderers.get("fps").map(_.setText("FPS: " + Window.fps()))
 
     val entities = NetworkState.getEntities()
-    entities.foreach(e => println(e.getComponents()))
-
     val fixtures = NetworkState.getFixtures()
-    fixtures.foreach(f => println(f))
 
     for (
       entity <- Try(entities.last).toOption;

@@ -6,6 +6,23 @@ import scala.collection.mutable.ArrayBuffer
 import shared.engine.Recordable
 import shared.engine.RecordableMode
 import shared.engine.PatchBuilder
+import shared.engine.EventsBase
+
+sealed trait NetworkEvent
+case class NETWORK_EVENT_CREATE_ENTITY(id: Int) extends NetworkEvent
+case class NETWORK_EVENT_SET_COMPONENT(
+    entityId: Int,
+    netTag: String,
+    component: HashMap[String, Any]
+) extends NetworkEvent
+case class NETWORK_EVENT_CREATE_FIXTURE(
+    id: Integer,
+    netTag: String,
+    x: Integer,
+    y: Integer
+) extends NetworkEvent
+
+object NetworkEvents extends EventsBase[NetworkEvent] {}
 
 /** Due to how Scala boxes types, recorded methods should always use Integer instead of Int in parameters
   */
@@ -23,6 +40,7 @@ abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
   def createEntity(id: Integer): Unit = {
     record("createEntity", id)
     entities.put(id, new NetworkEntity(id))
+    NetworkEvents.emit(NETWORK_EVENT_CREATE_ENTITY(id))
   }
 
   def setComponent(
@@ -32,14 +50,21 @@ abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
   ): Unit = {
     record("setComponent", entityId, netTag, component)
     getEntityById(entityId).map(_.setComponent(netTag, component))
+    NetworkEvents.emit(NETWORK_EVENT_SET_COMPONENT(entityId, netTag, component))
   }
 
   private val fixtures = new HashMap[Int, NetworkFixture]
   def getFixtureById(id: Int): Option[NetworkFixture] = fixtures.get(id)
   def getFixtures(): Iterable[NetworkFixture] = fixtures.values
-  def createFixture(id: Integer, netTag: String, x: Integer, y: Integer): Unit = {
+  def createFixture(
+      id: Integer,
+      netTag: String,
+      x: Integer,
+      y: Integer
+  ): Unit = {
     record("createFixture", id, netTag, x, y)
     fixtures.put(id, NetworkFixture(id, netTag, x, y))
+    NetworkEvents.emit(NETWORK_EVENT_CREATE_FIXTURE(id, netTag, x, y))
   }
 
   /** Builds a list of patches to rebuild current state
