@@ -1,4 +1,4 @@
-package server.game.world
+package shared.engine
 
 import scala.collection.mutable.HashMap
 

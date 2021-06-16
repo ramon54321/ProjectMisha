@@ -4,6 +4,7 @@ import scala.collection.mutable.HashMap
 import scala.collection.mutable.ArrayBuffer
 
 import server.engine.NetworkState
+import shared.engine.Grid
 
 object World {
   val collisionGrid = new Grid[Boolean]()

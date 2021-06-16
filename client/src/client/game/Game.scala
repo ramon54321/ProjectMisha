@@ -7,6 +7,9 @@ import org.joml.Vector2f
 import scala.util.Random
 import scala.collection.mutable.HashMap
 import scala.util.Try
+import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.Future
+import concurrent.ExecutionContext.Implicits.global
 
 import client.Constants
 import client.engine.Network
@@ -28,6 +31,12 @@ import client.engine.graphics.SpriteSheet
 import shared.game.NetworkEvents
 import shared.game.NETWORK_EVENT_CREATE_FIXTURE
 import shared.engine.IdUtils
+import shared.engine.Grid
+
+class Chunk {
+  var isLoaded = false
+  val sprites = new ArrayBuffer[StaticSprite]()
+}
 
 object Game {
   Events.on[EVENT_GL_READY](_ => glReady())
@@ -50,6 +59,30 @@ object Game {
   var cameraX = 0f
   var cameraY = 0f
 
+  val fixtureSpriteChunks = new Grid[Chunk]
+  private def loadChunk(x: Int, y: Int): Unit = {
+    for {
+      chunk <- fixtureSpriteChunks.getCell(x, y)
+    } yield {
+      if (!chunk.isLoaded) {
+        println(f"Loading chunk $x, $y")
+        chunk.sprites.foreach(sprite => baseBatchRenderer.addSprite(sprite))
+        chunk.isLoaded = true
+      }
+    }
+  }
+  private def unloadChunk(x: Int, y: Int): Unit = {
+    for {
+      chunk <- fixtureSpriteChunks.getCell(x, y)
+    } yield {
+      if (chunk.isLoaded) {
+        println(f"Unloading chunk $x, $y")
+        chunk.sprites.foreach(sprite => baseBatchRenderer.removeSprite(sprite))
+        chunk.isLoaded = false
+      }
+    }
+  }
+
   private def glReady(): Unit = {
     val halfWidth = Constants.SCREEN_WIDTH.toFloat / 2
     val halfHeight = Constants.SCREEN_HEIGHT.toFloat / 2
@@ -62,25 +95,29 @@ object Game {
       1
     )
 
+    NetworkEvents.on[NETWORK_EVENT_CREATE_FIXTURE](e => {
+      val sprite = new StaticSprite(
+        IdUtils.generateId(),
+        e.x * 64f,
+        e.y * 64f,
+        Random.nextFloat() * org.joml.Math.PI.toFloat * 2,
+        1,
+        spriteSheet,
+        "patch1.png"
+      )
+      val chunkX = (sprite.x / 256).toInt
+      val chunkY = (sprite.y / 256).toInt
+      val chunk = fixtureSpriteChunks.getCellElseUpdate(chunkX, chunkY, new Chunk())
+      chunk.sprites.addOne(sprite)
+      baseBatchRenderer.addSprite(sprite)
+    })
+
     debugBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 4)
     debugBatchRenderer.addSprite(
       new StaticSprite(0, 0, 0, 0, 1, spriteSheet, "empty.png")
     )
 
     baseBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 8192)
-    NetworkEvents.on[NETWORK_EVENT_CREATE_FIXTURE](e => {
-      baseBatchRenderer.addSprite(
-        new StaticSprite(
-          IdUtils.generateId(),
-          e.x * 64f,
-          e.y * 64f,
-          Random.nextFloat() * org.joml.Math.PI.toFloat * 2,
-          1,
-          spriteSheet,
-          "patch1.png"
-        )
-      )
-    })
 
     noidBatchRenderer =
       new DynamicSpriteBatchRenderer(spriteSheet.texture, 8192)
@@ -157,7 +194,7 @@ object Game {
     Benchmark.endTag("noidBatchRendererFlush")
     Benchmark.startTag("textBatchRenderersFlush")
     textBatchRenderers.valuesIterator.foreach(textBatchRenderer =>
-    textBatchRenderer.flush(projectionMatrix, 0, 0)
+      textBatchRenderer.flush(projectionMatrix, 0, 0)
     )
     Benchmark.endTag("textBatchRenderersFlush")
     Benchmark.startTag("debugBatchRendererFlush")
@@ -197,6 +234,21 @@ object Game {
     textBatchRenderers
       .get("fixturesCount")
       .map(_.setText(f"Fixtures: ${NetworkState.getFixtures().size}"))
+
+    // Update Chunks
+    val cameraChunkX = (cameraX / 256).toInt
+    val cameraChunkY = (cameraY / 256).toInt
+    val cameraChunkXMin = cameraChunkX - 1
+    val cameraChunkXMax = cameraChunkX + 1
+    val cameraChunkYMin = cameraChunkY - 1
+    val cameraChunkYMax = cameraChunkY + 1
+    for
+      x <- cameraChunkXMin - 1 to cameraChunkXMax + 1
+      y <- cameraChunkYMin - 1 to cameraChunkYMax + 1
+    yield
+      if (x == cameraChunkXMin - 1 || x == cameraChunkXMax + 1 || y == cameraChunkYMin - 1 || y == cameraChunkYMax + 1)
+      then unloadChunk(x, y)
+      else loadChunk(x, y)
   }
 
   private def tickerSecond(): Unit = {
