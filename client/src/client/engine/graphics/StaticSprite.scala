@@ -46,13 +46,13 @@ class StaticSprite(
     val uvs = spriteSheet.getUVFromRect(rect)
     return Array[Float](
       uvs.x0,
-      1 - uvs.y0,
+      uvs.y0,
       uvs.x1,
-      1 - uvs.y0,
+      uvs.y0,
       uvs.x0,
-      1 - uvs.y1,
+      uvs.y1,
       uvs.x1,
-      1 - uvs.y1
+      uvs.y1
     )
   }
   def getIndexes(): Array[Int] = Sprite.indexes

@@ -23,7 +23,6 @@ import client.engine.graphics.TextBatchRenderer
 import client.engine.graphics.StaticSprite
 import client.engine.graphics.Window
 import client.engine.graphics.Textures
-import client.engine.graphics.Rect
 import client.engine.graphics.SpriteSheet
 
 object Game {
@@ -35,16 +34,15 @@ object Game {
   // NetworkState.Events.on("setWorldName", args => println("Hook: " + args))
 
   var projectionMatrix: Matrix4f = null
+  var debugBatchRenderer: StaticSpriteBatchRenderer = null
   var baseBatchRenderer: StaticSpriteBatchRenderer = null
   var noidBatchRenderer: DynamicSpriteBatchRenderer = null
 
   private val textBatchRenderers = new HashMap[String, TextBatchRenderer]()
 
-  private val spriteSheet = new SpriteSheet(
-    Textures.get("world.png"),
-    scala.collection.immutable.HashMap(
-      "patch1" -> Rect(0, 0, 128, 128)
-    )
+  private val spriteSheet = SpriteSheet.fromTextures(
+    "mainsheet",
+    Array(Textures.get("patch1.png"), Textures.get("empty.png"))
   )
 
   var cameraX = 0f
@@ -62,6 +60,11 @@ object Game {
       1
     )
 
+    debugBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 4)
+    debugBatchRenderer.addSprite(
+      new StaticSprite(0, 0, 0, 0, spriteSheet, "empty.png")
+    )
+
     baseBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 8192)
     for (i <- 0 until 128) {
       baseBatchRenderer.addSprite(
@@ -71,7 +74,7 @@ object Game {
           -400 + Random.nextFloat() * 800,
           Random.nextFloat() * org.joml.Math.PI.toFloat * 2,
           spriteSheet,
-          "patch1"
+          "patch1.png"
         )
       )
     }
@@ -86,7 +89,7 @@ object Game {
           -400 + Random.nextFloat() * 800,
           Random.nextFloat() * org.joml.Math.PI.toFloat * 2,
           spriteSheet,
-          "patch1"
+          "empty.png"
         )
       )
     }
@@ -142,6 +145,9 @@ object Game {
   }
 
   private def glRender(): Unit = {
+    Benchmark.startTag("debugBatchRendererFlush")
+    debugBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
+    Benchmark.endTag("debugBatchRendererFlush")
     Benchmark.startTag("baseBatchRendererFlush")
     baseBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
     Benchmark.endTag("baseBatchRendererFlush")
