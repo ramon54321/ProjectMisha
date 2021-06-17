@@ -20,13 +20,13 @@ class DynamicSpriteBatchRenderer(
     val maxSprites: Int = 512
 ) extends BatchRenderer {
   // Keep track of sprites in this batch
-  private val sprites = new ArrayBuffer[StaticSprite]()
+  private val sprites = new ArrayBuffer[Sprite]()
 
   // Keep track to know when to resend buffer data to GPU
   private var isBuffersOutdated = true
 
   // Add sprite to batch if possible
-  def addSprite(sprite: StaticSprite): Boolean = {
+  def addSprite(sprite: Sprite): Boolean = {
     // Do not add sprite if batch is full
     if (sprites.size >= maxSprites) return false
 
@@ -49,7 +49,7 @@ class DynamicSpriteBatchRenderer(
     // Remove sprite from render batch
     sprites.remove(index)
   }
-  def removeSprite(sprite: StaticSprite): Unit = {
+  def removeSprite(sprite: Sprite): Unit = {
     removeSprite(sprite.id)
   }
 

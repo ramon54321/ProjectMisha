@@ -32,6 +32,8 @@ import shared.game.NetworkEvents
 import shared.game.NETWORK_EVENT_CREATE_FIXTURE
 import shared.engine.IdUtils
 import shared.engine.Grid
+import shared.game.NETWORK_EVENT_CREATE_ENTITY
+import client.engine.graphics.Sprite
 
 class Chunk {
   var isLoaded = false
@@ -43,6 +45,8 @@ object Game {
   Events.on[EVENT_GL_RENDER](_ => glRender())
   Events.on[EVENT_GL_UPDATE](_ => glUpdate())
   Events.on[EVENT_TICKER_SECOND](_ => tickerSecond())
+
+  val PIXELS_PER_METER = 32
 
   var projectionMatrix: Matrix4f = null
   var debugBatchRenderer: StaticSpriteBatchRenderer = null
@@ -86,6 +90,8 @@ object Game {
     }
   }
 
+  val entityIdToSpriteMap = new HashMap[Int, Sprite]
+
   private def glReady(): Unit = {
     val halfWidth = Constants.SCREEN_WIDTH.toFloat / 2
     val halfHeight = Constants.SCREEN_HEIGHT.toFloat / 2
@@ -101,8 +107,8 @@ object Game {
     NetworkEvents.on[NETWORK_EVENT_CREATE_FIXTURE](e => {
       val sprite = new StaticSprite(
         IdUtils.generateId(),
-        e.x * 64f,
-        e.y * 64f,
+        (e.x * PIXELS_PER_METER).toFloat,
+        (e.y * PIXELS_PER_METER).toFloat,
         e.r,
         1,
         spriteSheet,
@@ -115,28 +121,33 @@ object Game {
       if chunk.isLoaded then fixtureBatchRenderer.addSprite(sprite)
     })
 
-    debugBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 4)
-    debugBatchRenderer.addSprite(
-      new StaticSprite(0, 0, 0, 0, 1, spriteSheet, "empty.png")
-    )
-
-    fixtureBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 8192)
-
-    entityBatchRenderer =
-      new DynamicSpriteBatchRenderer(spriteSheet.texture, 8192)
-    for (i <- 0 until 64) {
-      entityBatchRenderer.addSprite(
-        new StaticSprite(
-          i,
-          -600 + Random.nextFloat() * 1200,
-          -400 + Random.nextFloat() * 800,
-          Random.nextFloat() * org.joml.Math.PI.toFloat * 2,
+    NetworkEvents.on[NETWORK_EVENT_CREATE_ENTITY](e => {
+      for
+        entity <- NetworkState.getEntityById(e.id)
+        transform <- entity.getComponent("Transform")
+        x <- transform.get("x")
+        y <- transform.get("y")
+      yield
+        val sprite = new Sprite(
+          IdUtils.generateId(),
+          x.asInstanceOf[Float] * PIXELS_PER_METER,
+          y.asInstanceOf[Float] * PIXELS_PER_METER,
+          0,
           1,
           spriteSheet,
-          "empty.png"
+          "empty.png",
         )
-      )
-    }
+        entityIdToSpriteMap.put(e.id, sprite)
+        entityBatchRenderer.addSprite(sprite)
+    })
+
+    debugBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 4)
+    // debugBatchRenderer.addSprite(
+    //   new StaticSprite(0, 0, 0, 0, 1, spriteSheet, "empty.png")
+    // )
+
+    fixtureBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 8192)
+    entityBatchRenderer = new DynamicSpriteBatchRenderer(spriteSheet.texture, 8192)
 
     textBatchRenderers.put(
       "fps",
@@ -213,6 +224,9 @@ object Game {
     // if (!networkMessages.isEmpty) println(networkMessages.mkString(" "))
     networkMessages.foreach(NetworkState.applyPatch)
 
+    // Respond to network state events
+    NetworkState.flushEvents()
+
     // Keyboard Input
     if (Window.keyDown(GLFW_KEY_A)) {
       cameraX -= 400 * deltaTime
@@ -252,6 +266,17 @@ object Game {
       if (x == cameraChunkXMin - 1 || x == cameraChunkXMax + 1 || y == cameraChunkYMin - 1 || y == cameraChunkYMax + 1)
       then unloadChunk(x, y)
       else loadChunk(x, y)
+
+    // Update Entities
+    for
+      entity <- NetworkState.getEntities()
+      transform <- entity.getComponent("Transform")
+      x <- transform.get("x")
+      y <- transform.get("y")
+      sprite <- entityIdToSpriteMap.get(entity.id)
+    yield
+      sprite.x = x.asInstanceOf[Float] * PIXELS_PER_METER
+      sprite.y = y.asInstanceOf[Float] * PIXELS_PER_METER
   }
 
   private def tickerSecond(): Unit = {

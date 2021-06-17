@@ -26,6 +26,7 @@ object ECS {
 class Entity(val id: Int) {
   private val components = new HashMap[String, Component]()
   def addComponent(component: Component): Entity = {
+    component.entity = this
     components.put(component.tag, component)
     return this
   }
@@ -38,6 +39,7 @@ class Entity(val id: Int) {
 
 abstract class Component {
   ECS._registerComponent(this)
+  var entity: Entity = null
   val tag: String = {
     val baseName = classOf[Component].getCanonicalName()
     val parents =

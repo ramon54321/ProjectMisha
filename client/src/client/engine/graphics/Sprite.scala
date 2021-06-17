@@ -3,10 +3,10 @@ package client.engine.graphics
 import scala.collection.immutable.HashMap
 import org.joml.Math
 
-class StaticSprite(
+class Sprite(
     val id: Int,
-    val x: Float,
-    val y: Float,
+    var x: Float,
+    var y: Float,
     val r: Float,
     val s: Float,
     val spriteSheet: SpriteSheet,
@@ -61,6 +61,16 @@ class StaticSprite(
   }
   def getIndexes(): Array[Int] = Sprite.indexes
 }
+
+class StaticSprite(
+    override val id: Int,
+    override val x: Float,
+    override val y: Float,
+    override val r: Float,
+    override val s: Float,
+    override val spriteSheet: SpriteSheet,
+    override val spriteName: String
+) extends Sprite(id, x, y, r, s, spriteSheet, spriteName) {}
 
 object Sprite {
   val positions = Array(

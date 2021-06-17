@@ -31,7 +31,14 @@ object NetworkEvents extends EventsBase[NetworkEvent] {}
 
 /** Due to how Scala boxes types, recorded methods should always use NetInt instead of Int in parameters
   */
-abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
+abstract class NetworkStateBase(override val mode: RecordableMode) extends Recordable(mode) {
+
+  private val eventQueue = new Queue[NetworkEvent]()
+  def flushEvents(): Unit =
+    while !eventQueue.isEmpty do NetworkEvents.emit(eventQueue.dequeue)
+  private def enqueueEvent(event: NetworkEvent): Unit =
+    if mode == RecordableMode.Reader then eventQueue.enqueue(event)
+
   private var worldName: String = "Unknown"
   def getWorldName = worldName
   def setWorldName(value: String): Unit = {
@@ -45,7 +52,7 @@ abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
   def createEntity(id: NetInt): Unit = {
     record("createEntity", id)
     entities.put(id, new NetworkEntity(id))
-    NetworkEvents.emit(NETWORK_EVENT_CREATE_ENTITY(id))
+    enqueueEvent(NETWORK_EVENT_CREATE_ENTITY(id))
   }
 
   def setComponent(
@@ -55,7 +62,7 @@ abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
   ): Unit = {
     record("setComponent", entityId, netTag, component)
     getEntityById(entityId).map(_.setComponent(netTag, component))
-    NetworkEvents.emit(NETWORK_EVENT_SET_COMPONENT(entityId, netTag, component))
+    enqueueEvent(NETWORK_EVENT_SET_COMPONENT(entityId, netTag, component))
   }
 
   private val fixtures = new HashMap[Int, NetworkFixture]
@@ -71,7 +78,7 @@ abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
   ): Unit = {
     record("createFixture", id, netTag, x, y, r, spriteName)
     fixtures.put(id, NetworkFixture(id, netTag, x, y, r, spriteName))
-    NetworkEvents.emit(NETWORK_EVENT_CREATE_FIXTURE(id, netTag, x, y, r, spriteName))
+    enqueueEvent(NETWORK_EVENT_CREATE_FIXTURE(id, netTag, x, y, r, spriteName))
   }
 
   /** Builds a list of patches to rebuild current state

@@ -15,7 +15,8 @@ object Game {
   private def start() = {
     WorldGenerator.generate()
     NetworkState.setWorldName("Anderson")
-    createEntity()
+    createEntity(0f, 0f)
+    createEntity(10f, 20f)
   }
 
   private def tick() = {
@@ -29,8 +30,10 @@ object Game {
     patches.foreach(Network.broadcast)
   }
 
-  private def createEntity() = {
-    val entity = ECS.createEntity().addComponent(new HealthComponent())
+  private def createEntity(x: Float, y: Float) = {
+    val entity = ECS.createEntity()
+      .addComponent(new TransformComponent(x, y))
+      .addComponent(new HealthComponent())
     NetworkState.createEntity(entity.id)
     entity.getComponents().foreach(_.updateNetworkState())
   }
