@@ -43,8 +43,10 @@ object Textures {
   private val textures = new HashMap[String, Texture]()
   def get(name: String): Texture = {
     Using(MemoryStack.stackPush()) { stack =>
+      val resourcePath = f"/sprites/${name}"
+      if getClass.getResource(resourcePath) == null then println(f"Can't find resource: ${resourcePath}")
       val resourceStreamBytes =
-        getClass().getResourceAsStream(f"/sprites/${name}").readAllBytes()
+        getClass().getResourceAsStream(resourcePath).readAllBytes()
       val resourceByteBuffer = BufferUtils
         .createByteBuffer(resourceStreamBytes.length)
         .put(resourceStreamBytes)
