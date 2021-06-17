@@ -103,7 +103,7 @@ object Game {
         Random.nextFloat() * org.joml.Math.PI.toFloat * 2,
         1,
         spriteSheet,
-        "patch1.png"
+        e.spriteName,
       )
       val chunkX = (sprite.x / 256).toInt
       val chunkY = (sprite.y / 256).toInt

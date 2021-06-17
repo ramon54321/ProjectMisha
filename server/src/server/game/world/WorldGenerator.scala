@@ -7,7 +7,7 @@ object WorldGenerator {
       x <- -45 until 45
       y <- -35 until 35
     } yield {
-      World.addFixture(FixtureSmallGrass(x, y))
+      World.addFixture(FixtureSmallPatch(x, y))
     }
   }
 }

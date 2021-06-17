@@ -20,7 +20,7 @@ object World {
     updateCollisionGrid(fixture.x, fixture.y)
 
     // Add to Network
-    NetworkState.createFixture(fixture.id, fixture.tag, fixture.x, fixture.y)
+    NetworkState.createFixture(fixture.id, fixture.tag, fixture.x, fixture.y, fixture.spriteName)
   }
 
   private def updateCollisionGrid(x: Int, y: Int): Unit = {

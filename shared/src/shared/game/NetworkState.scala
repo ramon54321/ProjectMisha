@@ -19,7 +19,8 @@ case class NETWORK_EVENT_CREATE_FIXTURE(
     id: Integer,
     netTag: String,
     x: Integer,
-    y: Integer
+    y: Integer,
+    spriteName: String,
 ) extends NetworkEvent
 
 object NetworkEvents extends EventsBase[NetworkEvent] {}
@@ -60,11 +61,12 @@ abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
       id: Integer,
       netTag: String,
       x: Integer,
-      y: Integer
+      y: Integer,
+      spriteName: String,
   ): Unit = {
-    record("createFixture", id, netTag, x, y)
-    fixtures.put(id, NetworkFixture(id, netTag, x, y))
-    NetworkEvents.emit(NETWORK_EVENT_CREATE_FIXTURE(id, netTag, x, y))
+    record("createFixture", id, netTag, x, y, spriteName)
+    fixtures.put(id, NetworkFixture(id, netTag, x, y, spriteName))
+    NetworkEvents.emit(NETWORK_EVENT_CREATE_FIXTURE(id, netTag, x, y, spriteName))
   }
 
   /** Builds a list of patches to rebuild current state
@@ -89,7 +91,8 @@ abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
           id,
           networkFixture.netTag,
           networkFixture.x,
-          networkFixture.y
+          networkFixture.y,
+          networkFixture.spriteName,
         )
       )
     })
@@ -114,5 +117,6 @@ case class NetworkFixture(
     val id: Int,
     val netTag: String,
     val x: Integer,
-    val y: Integer
+    val y: Integer,
+    val spriteName: String,
 )
