@@ -13,7 +13,10 @@ class StaticSprite(
     val spriteName: String
 ) {
   // Build info from spritesheet
-  val rect = spriteSheet.meta.get(spriteName).get
+  val rect = spriteSheet.meta.getOrElse(spriteName, {
+    println(f"Can't get spritesheet meta for ${spriteName}")
+    Rect(0, 0, 0, 0)
+  })
   val width = rect.width
   val height = rect.height
 

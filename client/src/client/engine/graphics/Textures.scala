@@ -8,6 +8,9 @@ import java.util.HashMap
 import scala.util.Using
 import scala.language.implicitConversions
 
+import client.engine.Resources
+import client.engine.ResourceError
+
 case class Texture(
     val name: String,
     val width: Int,
@@ -41,32 +44,25 @@ case class Texture(
 
 object Textures {
   private val textures = new HashMap[String, Texture]()
-  def get(name: String): Texture = {
-    Using(MemoryStack.stackPush()) { stack =>
-      val resourcePath = f"/sprites/${name}"
-      if getClass.getResource(resourcePath) == null then println(f"Can't find resource: ${resourcePath}")
-      val resourceStreamBytes =
-        getClass().getResourceAsStream(resourcePath).readAllBytes()
-      val resourceByteBuffer = BufferUtils
-        .createByteBuffer(resourceStreamBytes.length)
-        .put(resourceStreamBytes)
-        .flip()
-      val pWidth = stack.mallocInt(1)
-      val pHeight = stack.mallocInt(1)
-      val pChannels = stack.mallocInt(1)
-      val buffer = STBImage.stbi_load_from_memory(
-        resourceByteBuffer,
-        pWidth,
-        pHeight,
-        pChannels,
-        4
-      )
-      textures.put(
-        name,
+  def get(name: String): Either[ResourceError, Texture] = {
+    val path = f"/sprites/${name}"    
+    Resources.load(path).map(resourceBuffer => {
+      val texture = Using(MemoryStack.stackPush()) { stack =>
+        val pWidth = stack.mallocInt(1)
+        val pHeight = stack.mallocInt(1)
+        val pChannels = stack.mallocInt(1)
+        val buffer = STBImage.stbi_load_from_memory(
+          resourceBuffer,
+          pWidth,
+          pHeight,
+          pChannels,
+          4
+        )
         Texture(name, pWidth.get(0), pHeight.get(0), pChannels.get(0), buffer)
-      )
-    }
-    return textures.get(name)
+      }.get
+      textures.put(name, texture)
+      texture
+    })      
   }
 
   def fromBytes(name: String, width: Int, height: Int, channels: Int, bytes: Array[Byte]): Texture = {

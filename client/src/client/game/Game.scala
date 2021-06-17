@@ -51,11 +51,13 @@ object Game {
 
   private val textBatchRenderers = new HashMap[String, TextBatchRenderer]()
 
-  private val spriteSheet = SpriteSheet.fromTextures(
-    "mainsheet",
-    // TODO: Handle error when trying to read unloaded texture
-    Array(Textures.get("patch1.png"), Textures.get("empty.png"), Textures.get("grass1.png"))
-  )
+  val (resourceErrors, textures) = Array(
+    Textures.get("patch1.png"),
+    Textures.get("empty.png"),
+    Textures.get("grass1.png")
+  ).partitionMap(identity)
+  resourceErrors.foreach(println)
+  private val spriteSheet = SpriteSheet.fromTextures("mainsheet", textures)
 
   var cameraX = 0f
   var cameraY = 0f
