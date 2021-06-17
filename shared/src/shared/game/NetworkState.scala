@@ -8,6 +8,9 @@ import shared.engine.RecordableMode
 import shared.engine.PatchBuilder
 import shared.engine.EventsBase
 
+type NetInt = Integer
+type NetFloat = java.lang.Float
+
 sealed trait NetworkEvent
 case class NETWORK_EVENT_CREATE_ENTITY(id: Int) extends NetworkEvent
 case class NETWORK_EVENT_SET_COMPONENT(
@@ -16,16 +19,17 @@ case class NETWORK_EVENT_SET_COMPONENT(
     component: HashMap[String, Any]
 ) extends NetworkEvent
 case class NETWORK_EVENT_CREATE_FIXTURE(
-    id: Integer,
+    id: NetInt,
     netTag: String,
-    x: Integer,
-    y: Integer,
+    x: NetInt,
+    y: NetInt,
+    r: Float,
     spriteName: String,
 ) extends NetworkEvent
 
 object NetworkEvents extends EventsBase[NetworkEvent] {}
 
-/** Due to how Scala boxes types, recorded methods should always use Integer instead of Int in parameters
+/** Due to how Scala boxes types, recorded methods should always use NetInt instead of Int in parameters
   */
 abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
   private var worldName: String = "Unknown"
@@ -38,14 +42,14 @@ abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
   private val entities = new HashMap[Int, NetworkEntity]
   def getEntityById(id: Int): Option[NetworkEntity] = entities.get(id)
   def getEntities(): Iterable[NetworkEntity] = entities.values
-  def createEntity(id: Integer): Unit = {
+  def createEntity(id: NetInt): Unit = {
     record("createEntity", id)
     entities.put(id, new NetworkEntity(id))
     NetworkEvents.emit(NETWORK_EVENT_CREATE_ENTITY(id))
   }
 
   def setComponent(
-      entityId: Integer,
+      entityId: NetInt,
       netTag: String,
       component: HashMap[String, Any]
   ): Unit = {
@@ -58,15 +62,16 @@ abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
   def getFixtureById(id: Int): Option[NetworkFixture] = fixtures.get(id)
   def getFixtures(): Iterable[NetworkFixture] = fixtures.values
   def createFixture(
-      id: Integer,
+      id: NetInt,
       netTag: String,
-      x: Integer,
-      y: Integer,
+      x: NetInt,
+      y: NetInt,
+      r: NetFloat,
       spriteName: String,
   ): Unit = {
-    record("createFixture", id, netTag, x, y, spriteName)
-    fixtures.put(id, NetworkFixture(id, netTag, x, y, spriteName))
-    NetworkEvents.emit(NETWORK_EVENT_CREATE_FIXTURE(id, netTag, x, y, spriteName))
+    record("createFixture", id, netTag, x, y, r, spriteName)
+    fixtures.put(id, NetworkFixture(id, netTag, x, y, r, spriteName))
+    NetworkEvents.emit(NETWORK_EVENT_CREATE_FIXTURE(id, netTag, x, y, r, spriteName))
   }
 
   /** Builds a list of patches to rebuild current state
@@ -92,6 +97,7 @@ abstract class NetworkStateBase(mode: RecordableMode) extends Recordable(mode) {
           networkFixture.netTag,
           networkFixture.x,
           networkFixture.y,
+          networkFixture.r,
           networkFixture.spriteName,
         )
       )
@@ -116,7 +122,8 @@ class NetworkEntity(val id: Int) {
 case class NetworkFixture(
     val id: Int,
     val netTag: String,
-    val x: Integer,
-    val y: Integer,
+    val x: Int,
+    val y: Int,
+    val r: Float,
     val spriteName: String,
 )

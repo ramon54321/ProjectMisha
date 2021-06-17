@@ -1,6 +1,9 @@
 package server.game.world
 
+import org.joml.Random
+
 object WorldGenerator {
+  private val random = new Random(123456l)
   def generate(): Unit = {
     println("Generating World")
     for {
@@ -8,9 +11,8 @@ object WorldGenerator {
       y <- -35 until 35
     } yield {
       // TODO: Grid should fit smallest element... 32px?
-      // TODO: Send fixture rotation over net
-      World.addFixture(FixtureSmallPatch(x, y))
-      World.addFixture(FixtureSmallGrass(x, y))
+      World.addFixture(FixtureSmallPatch(x, y, random.nextFloat() * Math.PI.toFloat * 2))
+      World.addFixture(FixtureSmallGrass(x, y, 0))
     }
   }
 }

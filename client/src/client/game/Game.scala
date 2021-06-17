@@ -101,7 +101,7 @@ object Game {
         IdUtils.generateId(),
         e.x * 64f,
         e.y * 64f,
-        Random.nextFloat() * org.joml.Math.PI.toFloat * 2,
+        e.r,
         1,
         spriteSheet,
         e.spriteName,
