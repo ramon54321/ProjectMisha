@@ -53,7 +53,8 @@ object Game {
 
   private val spriteSheet = SpriteSheet.fromTextures(
     "mainsheet",
-    Array(Textures.get("patch1.png"), Textures.get("empty.png"))
+    // TODO: Handle error when trying to read unloaded texture
+    Array(Textures.get("patch1.png"), Textures.get("empty.png"), Textures.get("grass1.png"))
   )
 
   var cameraX = 0f
@@ -207,7 +208,7 @@ object Game {
 
     // Handle Server Messages
     val networkMessages = Network.dequeueMessages()
-    if (!networkMessages.isEmpty) println(networkMessages.mkString(" "))
+    // if (!networkMessages.isEmpty) println(networkMessages.mkString(" "))
     networkMessages.foreach(NetworkState.applyPatch)
 
     // Keyboard Input
