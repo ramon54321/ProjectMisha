@@ -52,6 +52,8 @@ class StaticSpriteBatchRenderer(val texture: Texture, val maxSprites: Int = 512)
     removeSprite(sprite.id)
   }
 
+  def getSpriteCount(): Int = sprites.size
+
   // Generate OpenGL objects' handles
   private val textureHandle = glGenTextures()
   private val vboPositions = glGenBuffers()

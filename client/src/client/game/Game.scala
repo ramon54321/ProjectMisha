@@ -46,8 +46,8 @@ object Game {
 
   var projectionMatrix: Matrix4f = null
   var debugBatchRenderer: StaticSpriteBatchRenderer = null
-  var baseBatchRenderer: StaticSpriteBatchRenderer = null
-  var noidBatchRenderer: DynamicSpriteBatchRenderer = null
+  var fixtureBatchRenderer: StaticSpriteBatchRenderer = null
+  var entityBatchRenderer: DynamicSpriteBatchRenderer = null
 
   private val textBatchRenderers = new HashMap[String, TextBatchRenderer]()
 
@@ -66,7 +66,7 @@ object Game {
     } yield {
       if (!chunk.isLoaded) {
         println(f"Loading chunk $x, $y")
-        chunk.sprites.foreach(sprite => baseBatchRenderer.addSprite(sprite))
+        chunk.sprites.foreach(sprite => fixtureBatchRenderer.addSprite(sprite))
         chunk.isLoaded = true
       }
     }
@@ -77,7 +77,7 @@ object Game {
     } yield {
       if (chunk.isLoaded) {
         println(f"Unloading chunk $x, $y")
-        chunk.sprites.foreach(sprite => baseBatchRenderer.removeSprite(sprite))
+        chunk.sprites.foreach(sprite => fixtureBatchRenderer.removeSprite(sprite))
         chunk.isLoaded = false
       }
     }
@@ -109,7 +109,7 @@ object Game {
       val chunkY = (sprite.y / 256).toInt
       val chunk = fixtureSpriteChunks.getCellElseUpdate(chunkX, chunkY, new Chunk())
       chunk.sprites.addOne(sprite)
-      baseBatchRenderer.addSprite(sprite)
+      if chunk.isLoaded then fixtureBatchRenderer.addSprite(sprite)
     })
 
     debugBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 4)
@@ -117,12 +117,12 @@ object Game {
       new StaticSprite(0, 0, 0, 0, 1, spriteSheet, "empty.png")
     )
 
-    baseBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 8192)
+    fixtureBatchRenderer = new StaticSpriteBatchRenderer(spriteSheet.texture, 8192)
 
-    noidBatchRenderer =
+    entityBatchRenderer =
       new DynamicSpriteBatchRenderer(spriteSheet.texture, 8192)
     for (i <- 0 until 64) {
-      noidBatchRenderer.addSprite(
+      entityBatchRenderer.addSprite(
         new StaticSprite(
           i,
           -600 + Random.nextFloat() * 1200,
@@ -186,12 +186,12 @@ object Game {
   }
 
   private def glRender(): Unit = {
-    Benchmark.startTag("baseBatchRendererFlush")
-    baseBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
-    Benchmark.endTag("baseBatchRendererFlush")
-    Benchmark.startTag("noidBatchRendererFlush")
-    noidBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
-    Benchmark.endTag("noidBatchRendererFlush")
+    Benchmark.startTag("fixtureBatchRendererFlush")
+    fixtureBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
+    Benchmark.endTag("fixtureBatchRendererFlush")
+    Benchmark.startTag("entityBatchRendererFlush")
+    entityBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
+    Benchmark.endTag("entityBatchRendererFlush")
     Benchmark.startTag("textBatchRenderersFlush")
     textBatchRenderers.valuesIterator.foreach(textBatchRenderer =>
       textBatchRenderer.flush(projectionMatrix, 0, 0)
@@ -230,10 +230,10 @@ object Game {
     // Update UI
     textBatchRenderers
       .get("entityCount")
-      .map(_.setText(f"Entities: ${NetworkState.getEntities().size}"))
+      .map(_.setText(f"Entities: ${entityBatchRenderer.getSpriteCount()}/${NetworkState.getEntities().size}"))
     textBatchRenderers
       .get("fixturesCount")
-      .map(_.setText(f"Fixtures: ${NetworkState.getFixtures().size}"))
+      .map(_.setText(f"Fixtures: ${fixtureBatchRenderer.getSpriteCount()}/${NetworkState.getFixtures().size}"))
 
     // Update Chunks
     val cameraChunkX = (cameraX / 256).toInt
