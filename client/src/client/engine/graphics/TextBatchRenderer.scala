@@ -302,9 +302,7 @@ class TextBatchRenderer(
   }
   def flush(projectionMatrix: Matrix4fc, cameraX: Float, cameraY: Float) = {
     // Update buffers with sprites' data if needed
-    Benchmark.startTag("textBatchRendererUpdateBuffers")
     if (isBuffersOutdated) updateBuffers()
-    Benchmark.endTag("textBatchRendererUpdateBuffers")
 
     // Use batch's shader program
     glUseProgram(shaderProgram)
@@ -332,8 +330,6 @@ class TextBatchRenderer(
     glBindTexture(GL_TEXTURE_2D, textureHandle)
 
     // Submit draw call to GPU
-    Benchmark.startTag("textBatchRendererDrawElements")
     glDrawElements(GL_TRIANGLES, 6 * text.size, GL_UNSIGNED_INT, 0)
-    Benchmark.endTag("textBatchRendererDrawElements")
   }
 }

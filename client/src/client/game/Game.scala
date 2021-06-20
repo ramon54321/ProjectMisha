@@ -144,17 +144,16 @@ object Game {
     // })
 
     val basicBatchRenderer = new BasicBatchRenderer(spriteSheet)
-    val basicBatchRenderer2 = new BasicBatchRenderer(spriteSheet)
-    val basicBatchRenderer3 = new BasicBatchRenderer(spriteSheet)
 
-    batchSprites.addOne(new BatchSprite(0, 0, 0, 0, 1, "empty.png", basicBatchRenderer))
-    batchSprites.addOne(new BatchSprite(0, 0, 0, 0, 1, "empty.png", basicBatchRenderer))
-    batchSprites.addOne(new BatchSprite(0, 0, 0, 0, 1, "empty.png", basicBatchRenderer))
-    batchSprites.addOne(new BatchSprite(0, 0, 0, 0, 1, "empty.png", basicBatchRenderer2))
-    batchSprites.addOne(new BatchSprite(0, 0, 0, 0, 1, "empty.png", basicBatchRenderer2))
-    batchSprites.addOne(new BatchSprite(0, 0, 0, 0, 1, "empty.png", basicBatchRenderer))
-    batchSprites.addOne(new BatchSprite(0, 0, 0, 0, 1, "empty.png", basicBatchRenderer3))
-    batchSprites.addOne(new BatchSprite(0, 0, 0, 0, 1, "empty.png", basicBatchRenderer))
+    val r = org.joml.Random()
+
+    for
+      i <- 0 until 25000
+    yield
+      val x = ((r.nextFloat() * 40 - 20) * PIXELS_PER_METER).toInt
+      val y = ((r.nextFloat() * 30 - 15)* PIXELS_PER_METER).toInt
+      batchSprites.addOne(new BatchSprite(i, x, y, 0, 1, "grass1.png", basicBatchRenderer))
+      
 
     textBatchRenderers.put(
       "fps",
@@ -207,11 +206,14 @@ object Game {
   }
 
   private def glRender(): Unit = {
-    Benchmark.startTag("batchRenderersFlush")
+    Benchmark.startTag("batchRenderersSort")
+    batchSprites.sortInPlaceWith((a, b) => a.y - b.y < 0)
+    Benchmark.endTag("batchRenderersSort")
+    Benchmark.startTag("batchRenderersSubmits")
     batchRenderManager.setCameraPosition(cameraX, cameraY)
     batchSprites.foreach(batchRenderManager.submitSprite)
     val batchInfo = batchRenderManager.complete()
-    Benchmark.endTag("batchRenderersFlush")
+    Benchmark.endTag("batchRenderersSubmits")
 
     Benchmark.startTag("textBatchRenderersFlush")
     textBatchRenderers.valuesIterator.foreach(textBatchRenderer =>
