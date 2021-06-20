@@ -6,9 +6,10 @@ import scala.reflect.ClassTag
 
 object QueueUtils {
   def dequeueToArray[T:ClassTag](queue: Queue[T]): Array[T] = {
-    val elements = new Array[T](queue.length)
+    val queueLength = queue.length
+    val elements = new Array[T](queueLength)
     var i = 0
-    while(queue.length > 0) {
+    while(i < queueLength) {
       elements(i) = queue.dequeue()
       i += 1
     }
