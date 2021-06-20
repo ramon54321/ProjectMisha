@@ -25,7 +25,8 @@ class BatchRenderManager(val projectionMatrix: Matrix4f) {
   
   private var flushes = 0
   private def flush(): Unit =
-    activeBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
+    if activeBatchRenderer != null
+    then activeBatchRenderer.flush(projectionMatrix, cameraX, cameraY)
     flushes += 1
 
   def complete(): BatchRenderCompleteInfo =

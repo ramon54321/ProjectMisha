@@ -35,10 +35,10 @@ import client.engine.graphics.BatchSprite
 import client.engine.graphics.BasicBatchRenderer
 import client.engine.graphics.BatchRenderManager
 
-// class Chunk {
-//   var isLoaded = false
-//   val sprites = new ArrayBuffer[StaticSprite]()
-// }
+class Chunk {
+  var isLoaded = false
+  val fixturesSprites = new ArrayBuffer[BatchSprite]()
+}
 
 object Game {
   Events.on[EVENT_GL_READY](_ => glReady())
@@ -46,16 +46,29 @@ object Game {
   Events.on[EVENT_GL_UPDATE](_ => glUpdate())
   Events.on[EVENT_TICKER_SECOND](_ => tickerSecond())
 
-  val PIXELS_PER_METER = 32
+  // Constants
+  private val PIXELS_PER_METER = 32
   
-  var projectionMatrix: Matrix4f = null
+  // Camera
+  private var projectionMatrix: Matrix4f = null
+  private var cameraX = 0f
+  private var cameraY = 0f
   
-  private val batchSprites = new ArrayBuffer[BatchSprite]
+  // Entity Tracking
+  private val activeFixturesSprites = new ArrayBuffer[BatchSprite]
+  private val entityIdToSpriteMap = new HashMap[Int, Sprite]
+
+  // Fixture Tracking
+  private val activeEntitiesSprites = new ArrayBuffer[BatchSprite]
+
+  // Renderer Manager
   private var batchRenderManager: BatchRenderManager = null
 
+  // Text Renderers
   private val textBatchRenderers = new HashMap[String, TextBatchRenderer]()
 
-  val (resourceErrors, textures) = Array(
+  // Load Spritesheet
+  private val (resourceErrors, textures) = Array(
     Textures.get("patch1.png"),
     Textures.get("empty.png"),
     Textures.get("grass1.png")
@@ -63,34 +76,30 @@ object Game {
   resourceErrors.foreach(println)
   private val spriteSheet = SpriteSheet.fromTextures("mainsheet", textures)
 
-  var cameraX = 0f
-  var cameraY = 0f
-
-  // val fixtureSpriteChunks = new Grid[Chunk]
+  // Chunk Management
+  val fixtureSpriteChunks = new Grid[Chunk]
   private def loadChunk(x: Int, y: Int): Unit = {
-    // for {
-    //   chunk <- fixtureSpriteChunks.getCell(x, y)
-    // } yield {
-    //   if (!chunk.isLoaded) {
-    //     println(f"Loading chunk $x, $y")
-    //     chunk.sprites.foreach(sprite => fixtureBatchRenderer.addSprite(sprite))
-    //     chunk.isLoaded = true
-    //   }
-    // }
+    for {
+      chunk <- fixtureSpriteChunks.getCell(x, y)
+    } yield {
+      if (!chunk.isLoaded) {
+        println(f"Loading chunk $x, $y")
+        chunk.fixturesSprites.foreach(sprite => activeFixturesSprites.addOne(sprite))
+        chunk.isLoaded = true
+      }
+    }
   }
   private def unloadChunk(x: Int, y: Int): Unit = {
-    // for {
-    //   chunk <- fixtureSpriteChunks.getCell(x, y)
-    // } yield {
-    //   if (chunk.isLoaded) {
-    //     println(f"Unloading chunk $x, $y")
-    //     chunk.sprites.foreach(sprite => fixtureBatchRenderer.removeSprite(sprite))
-    //     chunk.isLoaded = false
-    //   }
-    // }
+    for {
+      chunk <- fixtureSpriteChunks.getCell(x, y)
+    } yield {
+      if (chunk.isLoaded) {
+        println(f"Unloading chunk $x, $y")
+        chunk.fixturesSprites.foreach(sprite => activeFixturesSprites.remove(activeFixturesSprites.indexOf(sprite)))
+        chunk.isLoaded = false
+      }
+    }
   }
-
-  val entityIdToSpriteMap = new HashMap[Int, Sprite]
 
   private def glReady(): Unit = {
     val halfWidth = Constants.SCREEN_WIDTH.toFloat / 2
@@ -105,55 +114,44 @@ object Game {
     )
 
     batchRenderManager = new BatchRenderManager(projectionMatrix)
-
-    // NetworkEvents.on[NETWORK_EVENT_CREATE_FIXTURE](e => {
-    //   val sprite = new StaticSprite(
-    //     IdUtils.generateId(),
-    //     (e.x * PIXELS_PER_METER).toFloat,
-    //     (e.y * PIXELS_PER_METER).toFloat,
-    //     e.r,
-    //     1,
-    //     spriteSheet,
-    //     e.spriteName,
-    //   )
-    //   val chunkX = (sprite.x / 256).toInt
-    //   val chunkY = (sprite.y / 256).toInt
-    //   val chunk = fixtureSpriteChunks.getCellElseUpdate(chunkX, chunkY, new Chunk())
-    //   chunk.sprites.addOne(sprite)
-    //   if chunk.isLoaded then fixtureBatchRenderer.addSprite(sprite)
-    // })
-
-    // NetworkEvents.on[NETWORK_EVENT_CREATE_ENTITY](e => {
-    //   for
-    //     entity <- NetworkState.getEntityById(e.id)
-    //     transform <- entity.getComponent("Transform")
-    //     x <- transform.get("x")
-    //     y <- transform.get("y")
-    //   yield
-    //     val sprite = new Sprite(
-    //       IdUtils.generateId(),
-    //       x.asInstanceOf[Float] * PIXELS_PER_METER,
-    //       y.asInstanceOf[Float] * PIXELS_PER_METER,
-    //       0,
-    //       1,
-    //       spriteSheet,
-    //       "empty.png",
-    //     )
-    //     entityIdToSpriteMap.put(e.id, sprite)
-    //     entityBatchRenderer.addSprite(sprite)
-    // })
-
     val basicBatchRenderer = new BasicBatchRenderer(spriteSheet)
 
-    val r = org.joml.Random()
+    NetworkEvents.on[NETWORK_EVENT_CREATE_FIXTURE](e => {
+      val sprite = new BatchSprite(
+        IdUtils.generateId(),
+        (e.x * PIXELS_PER_METER).toFloat,
+        (e.y * PIXELS_PER_METER).toFloat,
+        e.r,
+        1,
+        e.spriteName,
+        basicBatchRenderer,
+      )
+      val chunkX = (sprite.x / 256).toInt
+      val chunkY = (sprite.y / 256).toInt
+      val chunk = fixtureSpriteChunks.getCellElseUpdate(chunkX, chunkY, new Chunk())
+      chunk.fixturesSprites.addOne(sprite)
+      if chunk.isLoaded then activeFixturesSprites.addOne(sprite)
+    })
 
-    for
-      i <- 0 until 25000
-    yield
-      val x = ((r.nextFloat() * 40 - 20) * PIXELS_PER_METER).toInt
-      val y = ((r.nextFloat() * 30 - 15)* PIXELS_PER_METER).toInt
-      batchSprites.addOne(new BatchSprite(i, x, y, 0, 1, "grass1.png", basicBatchRenderer))
-      
+    NetworkEvents.on[NETWORK_EVENT_CREATE_ENTITY](e => {
+      for
+        entity <- NetworkState.getEntityById(e.id)
+        transform <- entity.getComponent("Transform")
+        x <- transform.get("x")
+        y <- transform.get("y")
+      yield
+        val sprite = new BatchSprite(
+          IdUtils.generateId(),
+          x.asInstanceOf[Float] * PIXELS_PER_METER,
+          y.asInstanceOf[Float] * PIXELS_PER_METER,
+          0,
+          1,
+          "empty.png",
+          basicBatchRenderer,
+        )
+        entityIdToSpriteMap.put(e.id, sprite)
+        activeEntitiesSprites.addOne(sprite)
+    })
 
     textBatchRenderers.put(
       "fps",
@@ -207,11 +205,12 @@ object Game {
 
   private def glRender(): Unit = {
     Benchmark.startTag("batchRenderersSort")
-    batchSprites.sortInPlaceWith((a, b) => a.y - b.y > 0)
+    val spritesToSubmit = activeFixturesSprites.concat(activeEntitiesSprites)
+    spritesToSubmit.sortInPlaceWith((a, b) => a.y - b.y > 0)
     Benchmark.endTag("batchRenderersSort")
     Benchmark.startTag("batchRenderersSubmits")
     batchRenderManager.setCameraPosition(cameraX, cameraY)
-    batchSprites.foreach(batchRenderManager.submitSprite)
+    spritesToSubmit.foreach(batchRenderManager.submitSprite)
     val batchInfo = batchRenderManager.complete()
     Benchmark.endTag("batchRenderersSubmits")
 
@@ -253,10 +252,10 @@ object Game {
     // Update UI
     textBatchRenderers
       .get("entityCount")
-      .map(_.setText(f"Entities: ???/${NetworkState.getEntities().size}"))
+      .map(_.setText(f"Entities: ${activeEntitiesSprites.size}/${NetworkState.getEntities().size}"))
     textBatchRenderers
       .get("fixturesCount")
-      .map(_.setText(f"Fixtures: ???/${NetworkState.getFixtures().size}"))
+      .map(_.setText(f"Fixtures: ${activeFixturesSprites.size}/${NetworkState.getFixtures().size}"))
 
     // Update Chunks
     val cameraChunkX = (cameraX / 256).toInt
