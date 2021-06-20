@@ -62,15 +62,15 @@ class Sprite(
   def getIndexes(): Array[Int] = Sprite.indexes
 }
 
-class StaticSprite(
-    override val id: Int,
-    override val x: Float,
-    override val y: Float,
-    override val r: Float,
-    override val s: Float,
-    override val spriteSheet: SpriteSheet,
-    override val spriteName: String
-) extends Sprite(id, x, y, r, s, spriteSheet, spriteName) {}
+class BatchSprite(
+    id: Int,
+    x: Float,
+    y: Float,
+    r: Float,
+    s: Float,
+    spriteName: String,
+    val batchRenderer: BatchRenderer,
+) extends Sprite(id, x, y, r, s, batchRenderer.spriteSheet, spriteName) {}
 
 object Sprite {
   val positions = Array(

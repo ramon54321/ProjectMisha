@@ -14,46 +14,9 @@ import scala.util.Using
 import org.lwjgl.system.MemoryStack
 
 import client.engine.Benchmark
+import client.engine.graphics.Texture
 
-class DynamicSpriteBatchRenderer(
-    val texture: Texture,
-    val maxSprites: Int = 512
-) extends BatchRenderer {
-  // Keep track of sprites in this batch
-  private val sprites = new ArrayBuffer[Sprite]()
-
-  // Keep track to know when to resend buffer data to GPU
-  private var isBuffersOutdated = true
-
-  // Add sprite to batch if possible
-  def addSprite(sprite: Sprite): Boolean = {
-    // Do not add sprite if batch is full
-    if (sprites.size >= maxSprites) return false
-
-    // Mark buffers as dirty to ensure buffer data resend to GPU on next render
-    isBuffersOutdated = true
-
-    // Add sprite to render batch
-    sprites.addOne(sprite)
-    return true
-  }
-
-  // Remove sprite from batch
-  def removeSprite(spriteId: Int): Unit = {
-    // Mark buffers as dirty to ensure buffer data resend to GPU on next render
-    isBuffersOutdated = true
-
-    // Get sprite index
-    val index = sprites.indexWhere(s => s.id == spriteId)
-
-    // Remove sprite from render batch
-    sprites.remove(index)
-  }
-  def removeSprite(sprite: Sprite): Unit = {
-    removeSprite(sprite.id)
-  }
-
-  def getSpriteCount(): Int = sprites.size
+class BasicBatchRenderer(override val spriteSheet: SpriteSheet, val maxSprites: Int = 512) extends BatchRenderer(spriteSheet) {
 
   // Generate OpenGL objects' handles
   private val textureHandle = glGenTextures()
@@ -90,17 +53,18 @@ class DynamicSpriteBatchRenderer(
       GL_TEXTURE_2D,
       0,
       GL_RGBA,
-      texture.width,
-      texture.height,
+      spriteSheet.texture.width,
+      spriteSheet.texture.height,
       0,
       GL_RGBA,
       GL_UNSIGNED_BYTE,
-      texture.buffer
+      spriteSheet.texture.buffer
     )
 
     // Generate mipmap
     glGenerateMipmap(GL_TEXTURE_2D)
   }
+
   private def setupShader() = {
     // Specify shaders' source
     val vertexShaderSource =
@@ -164,6 +128,7 @@ class DynamicSpriteBatchRenderer(
     uniformModelView = glGetUniformLocation(shaderProgram, "modelView")
     uniformMainTexture = glGetUniformLocation(shaderProgram, "mainTexture")
   }
+
   private def setupBuffers() = {
     // Create VBOs with enough capacity to accomodate maxSprites
     glBindBuffer(GL_ARRAY_BUFFER, vboPositions)
@@ -194,6 +159,7 @@ class DynamicSpriteBatchRenderer(
     glEnableVertexAttribArray(attribLocationColor)
     glEnableVertexAttribArray(attribLocationUvs)
   }
+
   private def sendBuffers(
       positions: Array[Float],
       colors: Array[Float],
@@ -210,65 +176,54 @@ class DynamicSpriteBatchRenderer(
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vio)
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indexes)
   }
+
   private val positions = new Array[Float](maxSprites * 2 * 4)
   private val colors = new Array[Float](maxSprites * 3 * 4)
   private val uvs = new Array[Float](maxSprites * 2 * 4)
   private val indexes = new Array[Int](maxSprites * 6 * 4)
-  private def updateBuffers() = {
-    // Mark buffers as clean
-    isBuffersOutdated = false
+  private var batchSpriteCount = 0
 
-    // Sort sprites
-    sprites.sortInPlaceWith((a, b) => a.y - b.y < 0)
+  def isFull(): Boolean = batchSpriteCount >= maxSprites
 
-    // Consecutively add sprites' attributes and indexes into buffers
-    var spriteIndex = 0
-    sprites.foreach(sprite => {
-      // Add sprite positions to positions collection with sprite's own position offset
-      val spritePositions = sprite.getPositions()
-      val positionOffset = spriteIndex * 8
-      for (i <- 0 until 8) {
-        // Add sprite's position to each base vertex position
-        if (i % 2 == 0) {
-          positions(positionOffset + i) = spritePositions(i) + sprite.x
-        } else {
-          positions(positionOffset + i) = spritePositions(i) + sprite.y
-        }
+  def submitSprite(sprite: BatchSprite): Unit =
+    val spritePositions = sprite.getPositions()
+    val positionOffset = batchSpriteCount * 8
+    for (i <- 0 until 8) {
+      // Add sprite's position to each base vertex position
+      if (i % 2 == 0) {
+        positions(positionOffset + i) = spritePositions(i) + sprite.x
+      } else {
+        positions(positionOffset + i) = spritePositions(i) + sprite.y
       }
+    }
 
-      // Add sprite colors to colors collection
-      val spriteColors = sprite.getColors()
-      val colorOffset = spriteIndex * 12
-      for (i <- 0 until 12) {
-        colors(colorOffset + i) = spriteColors(i)
-      }
+    // Add sprite colors to colors collection
+    val spriteColors = sprite.getColors()
+    val colorOffset = batchSpriteCount * 12
+    for (i <- 0 until 12) {
+      colors(colorOffset + i) = spriteColors(i)
+    }
 
-      // Add sprite uvs to uvs collection
-      val spriteUvs = sprite.getUvs()
-      val uvOffset = spriteIndex * 8
-      for (i <- 0 until 8) {
-        uvs(uvOffset + i) = spriteUvs(i)
-      }
+    // Add sprite uvs to uvs collection
+    val spriteUvs = sprite.getUvs()
+    val uvOffset = batchSpriteCount * 8
+    for (i <- 0 until 8) {
+      uvs(uvOffset + i) = spriteUvs(i)
+    }
 
-      // Add sprite indexes to indexes collection with offset
-      val spriteIndexes = sprite.getIndexes().map(i => i + spriteIndex * 4)
-      val indexOffset = spriteIndex * 6
-      for (i <- 0 until 6) {
-        indexes(indexOffset + i) = spriteIndexes(i)
-      }
+    // Add sprite indexes to indexes collection with offset
+    val spriteIndexes = sprite.getIndexes().map(i => i + batchSpriteCount * 4)
+    val indexOffset = batchSpriteCount * 6
+    for (i <- 0 until 6) {
+      indexes(indexOffset + i) = spriteIndexes(i)
+    }
 
-      spriteIndex += 1
-    })
+    batchSpriteCount += 1
+  end submitSprite
 
-    // Send aggregated buffers to GPU
-    sendBuffers(positions, colors, uvs, indexes)
-  }
   def flush(projectionMatrix: Matrix4fc, cameraX: Float, cameraY: Float) = {
-    // Update buffers with sprites' data if needed
-    Benchmark.startTag("dynamicBatchRendererUpdateBuffers")
-    // if (isBuffersOutdated) updateBuffers()
-    updateBuffers()
-    Benchmark.endTag("dynamicBatchRendererUpdateBuffers")
+    // Send Current Batch
+    sendBuffers(positions, colors, uvs, indexes)
 
     // Use batch's shader program
     glUseProgram(shaderProgram)
@@ -297,8 +252,9 @@ class DynamicSpriteBatchRenderer(
     glUniform1i(uniformMainTexture, 0)
 
     // Submit draw call to GPU
-    Benchmark.startTag("dynamicBatchRendererDrawElements")
-    glDrawElements(GL_TRIANGLES, 6 * sprites.size, GL_UNSIGNED_INT, 0)
-    Benchmark.endTag("dynamicBatchRendererDrawElements")
+    glDrawElements(GL_TRIANGLES, 6 * batchSpriteCount, GL_UNSIGNED_INT, 0)
+
+    // Reset Batch
+    batchSpriteCount = 0
   }
 }
