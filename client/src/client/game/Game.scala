@@ -207,7 +207,7 @@ object Game {
 
   private def glRender(): Unit = {
     Benchmark.startTag("batchRenderersSort")
-    batchSprites.sortInPlaceWith((a, b) => a.y - b.y < 0)
+    batchSprites.sortInPlaceWith((a, b) => a.y - b.y > 0)
     Benchmark.endTag("batchRenderersSort")
     Benchmark.startTag("batchRenderersSubmits")
     batchRenderManager.setCameraPosition(cameraX, cameraY)
